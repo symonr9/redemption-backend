@@ -128,3 +128,27 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Prisma generated files
+/prisma/migrations/
+/prisma/schema.prisma
+
+# Prisma client generated files (if you use TypeScript or JavaScript with Prisma Client)
+/node_modules/.prisma/
+/prisma/client/
+
+# Environment variables
+.env*
+
+# Log files
+*.log
+
+# Editor and OS generated files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Dependencies (if not already managed via package.json)
+node_modules/
