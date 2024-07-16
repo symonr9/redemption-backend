@@ -131,7 +131,6 @@ dist
 
 # Prisma generated files
 /prisma/migrations/
-/prisma/schema.prisma
 
 # Prisma client generated files (if you use TypeScript or JavaScript with Prisma Client)
 /node_modules/.prisma/
