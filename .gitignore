@@ -152,3 +152,6 @@ Thumbs.db
 
 # Dependencies (if not already managed via package.json)
 node_modules/
+
+# SQLite database file
+dev.db
