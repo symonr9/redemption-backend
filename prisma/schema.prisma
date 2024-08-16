@@ -6,25 +6,165 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
+// User Model
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  email     String   @unique
-  name      String?
-  posts     Post[]
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String
+  email                String   @unique
+  passwordHash         String
+  oauthProvider        String?
+  oauthId              String?
+  role                 Role     @default(Normal)
+  description          String?
+  ones                 One[]
+  notificationsEnabled Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  Prayer Prayer[]
+
+  Notification Notification[]
+
+  Signup Signup[]
+
+  Participant Participant[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
+enum Role {
+  Normal
+  Leader
+  Admin
+}
+
+model One {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  totalMeetings   Int
+  nextMeetingDate DateTime?
+  meetingHistory  MeetingHistory[]
+  userId          String           @map("userId") @db.ObjectId
+  user            User             @relation(fields: [userId], references: [id])
+
+  Prayer Prayer[]
+}
+
+// Resources Model
+model Resource {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  url         String
+  type        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Events Model
+model Event {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  location     String
+  startDate    DateTime
+  endDate      DateTime
+  type         String
+  organization String
+  participants Participant[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  Signup Signup[]
+}
+
+// Participant (for Events and Mission Trips)
+model Participant {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  status        String
+  eventId       String?      @map("eventId") @db.ObjectId
+  event         Event?       @relation(fields: [eventId], references: [id])
+  missionTripId String?      @map("missionTripId") @db.ObjectId
+  missionTrip   MissionTrip? @relation(fields: [missionTripId], references: [id])
+  userId        String       @map("userId") @db.ObjectId
+  user          User         @relation(fields: [userId], references: [id])
+}
+
+// Mission Trips Model
+model MissionTrip {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  location       String
+  departureDate  DateTime
+  returnDate     DateTime
+  availableSpots Int
+  participants   Participant[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  Signup Signup[]
+}
+
+// Notifications Model
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  message   String
+  sentAt    DateTime
+  status    String
+  userId    String   @map("userId") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  published Boolean  @default(false)
-  title     String
-  content   String?
-  author    User?    @relation(fields: [authorId], references: [id])
-  authorId  Int?
+}
+
+// Signups Model
+model Signup {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  type          String
+  status        String
+  userId        String       @map("userId") @db.ObjectId
+  user          User         @relation(fields: [userId], references: [id])
+  eventId       String?      @map("eventId") @db.ObjectId
+  event         Event?       @relation(fields: [eventId], references: [id])
+  missionTripId String?      @map("missionTripId") @db.ObjectId
+  missionTrip   MissionTrip? @relation(fields: [missionTripId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// Prayers Model
+model Prayer {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  prayerCount    Int
+  lastPrayedAt   DateTime?
+  prayerRequests PrayerRequest[]
+  userId         String          @map("userId") @db.ObjectId
+  user           User            @relation(fields: [userId], references: [id])
+  oneId          String          @map("oneId") @db.ObjectId
+  one            One             @relation(fields: [oneId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model PrayerRequest {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  request   String
+  createdAt DateTime @default(now())
+  prayerId  String   @map("prayerId") @db.ObjectId
+  prayer    Prayer   @relation(fields: [prayerId], references: [id])
+}
+
+// Meeting History Model
+model MeetingHistory {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  meetingDate      DateTime
+  notes            String?
+  decisionForJesus Boolean
+  oneId            String   @map("oneId") @db.ObjectId
+  one              One      @relation(fields: [oneId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
