@@ -1,1 +1,1 @@
-# redemption-backend
+# Gospel Initiative
