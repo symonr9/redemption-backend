@@ -33,6 +33,47 @@ router.post("/create", async (req, res) => {
     }
 });
 
+// Get a single user by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.params.id },
+        });
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch user' });
+    }
+});
 
+// Update an existing user
+router.put('/:id', async (req, res) => {
+    try {
+        const { name, email, role, description } = req.body;
+        const user = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { name, email, role, description },
+        });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+});
+
+
+// Delete a user
+router.delete('/:id', async (req, res) => {
+    try {
+        await prisma.user.delete({
+            where: { id: req.params.id },
+        });
+        res.status(204).end();
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
 
 module.exports = router;

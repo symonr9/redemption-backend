@@ -1,9 +1,19 @@
 // routes/index.js
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
 const router = express.Router();
 
-router.use('/users', require('./users'));
-router.use('/auth', require('./auth'));
+// Read all files in the current directory
+const routeFiles = fs.readdirSync(__dirname).filter(file => {
+    return file !== 'index.js' && file.endsWith('.js');
+});
+
+routeFiles.forEach(file => {
+    const route = require(path.join(__dirname, file));
+    const routeName = file.replace('.js', '');
+    router.use(`/${routeName}`, route);
+});
 
 module.exports = router;
