@@ -6,55 +6,46 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // User Model
 model User {
-  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                   String   @id @default(cuid())
   name                 String
   email                String   @unique
   passwordHash         String
   oauthProvider        String?
   oauthId              String?
-  role                 Role     @default(Normal)
+  role                 Int     @default(1)
   description          String?
   ones                 One[]
   notificationsEnabled Boolean  @default(false)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  Prayer Prayer[]
-
-  Notification Notification[]
-
-  Signup Signup[]
-
-  Participant Participant[]
-}
-
-enum Role {
-  Normal
-  Leader
-  Admin
+  Prayer               Prayer[]
+  Notification         Notification[]
+  Signup               Signup[]
+  Participant          Participant[]
 }
 
 model One {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  id              String           @id @default(cuid())
   name            String
   totalMeetings   Int
   nextMeetingDate DateTime?
   meetingHistory  MeetingHistory[]
-  userId          String           @map("userId") @db.ObjectId
+  userId          String
   user            User             @relation(fields: [userId], references: [id])
 
-  Prayer Prayer[]
+  Prayer          Prayer[]
 }
 
 // Resources Model
 model Resource {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(cuid())
   title       String
   description String
   url         String
@@ -65,7 +56,7 @@ model Resource {
 
 // Events Model
 model Event {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  id           String        @id @default(cuid())
   title        String
   description  String
   location     String
@@ -82,19 +73,19 @@ model Event {
 
 // Participant (for Events and Mission Trips)
 model Participant {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  id            String       @id @default(cuid())
   status        String
-  eventId       String?      @map("eventId") @db.ObjectId
+  eventId       String?
   event         Event?       @relation(fields: [eventId], references: [id])
-  missionTripId String?      @map("missionTripId") @db.ObjectId
+  missionTripId String?
   missionTrip   MissionTrip? @relation(fields: [missionTripId], references: [id])
-  userId        String       @map("userId") @db.ObjectId
+  userId        String
   user          User         @relation(fields: [userId], references: [id])
 }
 
 // Mission Trips Model
 model MissionTrip {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  id             String        @id @default(cuid())
   title          String
   description    String
   location       String
@@ -110,11 +101,11 @@ model MissionTrip {
 
 // Notifications Model
 model Notification {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   message   String
   sentAt    DateTime
   status    String
-  userId    String   @map("userId") @db.ObjectId
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,14 +113,14 @@ model Notification {
 
 // Signups Model
 model Signup {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  id            String       @id @default(cuid())
   type          String
   status        String
-  userId        String       @map("userId") @db.ObjectId
+  userId        String
   user          User         @relation(fields: [userId], references: [id])
-  eventId       String?      @map("eventId") @db.ObjectId
+  eventId       String?
   event         Event?       @relation(fields: [eventId], references: [id])
-  missionTripId String?      @map("missionTripId") @db.ObjectId
+  missionTripId String?
   missionTrip   MissionTrip? @relation(fields: [missionTripId], references: [id])
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -137,33 +128,33 @@ model Signup {
 
 // Prayers Model
 model Prayer {
-  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  id             String          @id @default(cuid())
   prayerCount    Int
   lastPrayedAt   DateTime?
   prayerRequests PrayerRequest[]
-  userId         String          @map("userId") @db.ObjectId
+  userId         String
   user           User            @relation(fields: [userId], references: [id])
-  oneId          String          @map("oneId") @db.ObjectId
+  oneId          String
   one            One             @relation(fields: [oneId], references: [id])
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }
 
 model PrayerRequest {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   request   String
   createdAt DateTime @default(now())
-  prayerId  String   @map("prayerId") @db.ObjectId
+  prayerId  String
   prayer    Prayer   @relation(fields: [prayerId], references: [id])
 }
 
 // Meeting History Model
 model MeetingHistory {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  id               String   @id @default(cuid())
   meetingDate      DateTime
   notes            String?
   decisionForJesus Boolean
-  oneId            String   @map("oneId") @db.ObjectId
+  oneId            String
   one              One      @relation(fields: [oneId], references: [id])
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
