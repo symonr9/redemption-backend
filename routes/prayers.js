@@ -31,20 +31,20 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new prayer
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
+    const { name, lastPrayedAt, userId, oneId, type } = req.body;
     try {
-        const { title, description } = req.body;
-        const prayer = await prisma.prayer.create({
-            data: { title, description },
-        });
-        res.status(201).json(prayer);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to create prayer' });
+      const prayer = await prisma.prayer.create({
+        data: { name, lastPrayedAt, userId, oneId, type }
+      });
+      res.status(201).json(prayer);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
 });
 
 // Update an existing prayer
-router.put('/:id', async (req, res) => {
+router.post('/update/:id', async (req, res) => {
     try {
         const { title, description } = req.body;
         const prayer = await prisma.prayer.update({
@@ -70,7 +70,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Create a new prayer for a specific user
-router.post('/user/:userId', async (req, res) => {
+router.post('/create/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const { title, description } = req.body;
 
@@ -91,7 +91,7 @@ router.post('/user/:userId', async (req, res) => {
 
 
 // Create a new prayer for a specific user and a specific "one"
-router.post('/user/:userId/one/:oneId', async (req, res) => {
+router.post('/create/user/:userId/one/:oneId', async (req, res) => {
     const { userId, oneId } = req.params;
     const { title, description } = req.body;
 

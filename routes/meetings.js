@@ -4,12 +4,12 @@ const prisma = require('../misc/prisma-client');
 const router = express.Router();
 
 router.post('/create', async (req, res) => {
-  const { name, icon, stage, nextMeetingAt, prayingSince, userId } = req.body;
+  const { notes, meetingAt, oneId, tag, userId } = req.body;
   try {
-    const one = await prisma.one.create({
-      data: { name, icon, stage, nextMeetingAt, prayingSince, userId }
+    const meeting = await prisma.meeting.create({
+      data: { notes, meetingAt, oneId, tag, userId }
     });
-    res.status(201).json(one);
+    res.status(201).json(meeting);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -17,8 +17,8 @@ router.post('/create', async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-    const ones = await prisma.one.findMany();
-    res.json(ones);
+    const meetings = await prisma.meeting.findMany();
+    res.json(meetings);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -27,24 +27,34 @@ router.get('/', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
-    const ones = await prisma.one.findMany({
-      where: { userId },
-      include: { meetings: true, prayers: true, actionSteps: true, facts: true }
+    const meetings = await prisma.meeting.findMany({
+      where: { userId }
     });
-    res.json(ones);
+    res.json(meetings);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/one/:oneId', async (req, res) => {
+  const { oneId } = req.params;
+  try {
+    const meetings = await prisma.meeting.findMany({
+      where: { oneId }
+    });
+    res.json(meetings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/meeting/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const one = await prisma.one.findUnique({
-      where: { id },
-      include: { meetings: true, prayers: true, actionSteps: true, facts: true }
+    const meeting = await prisma.meeting.findUnique({
+      where: { id }
     });
-    res.json(one);
+    res.json(meeting);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -52,13 +62,13 @@ router.get('/:id', async (req, res) => {
 
 router.post('/update/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, icon, stage, nextMeetingAt, prayingSince } = req.body;
+  const { notes, meetingAt, oneId, tag } = req.body;
   try {
-    const one = await prisma.one.update({
+    const meeting = await prisma.meeting.update({
       where: { id },
-      data: { name, icon, stage, nextMeetingAt, prayingSince }
+      data: { notes, meetingAt, oneId, tag }
     });
-    res.json(one);
+    res.json(meeting);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -67,7 +77,7 @@ router.post('/update/:id', async (req, res) => {
 router.post('/delete/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.one.delete({
+    await prisma.meeting.delete({
       where: { id }
     });
     res.status(204).end();
