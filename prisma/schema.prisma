@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,152 +7,332 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Model
-model User {
-  id                   String   @id @default(cuid())
-  name                 String
-  email                String   @unique
-  passwordHash         String
-  oauthProvider        String?
-  oauthId              String?
-  role                 Int     @default(1)
-  description          String?
-  ones                 One[]
-  notificationsEnabled Boolean  @default(false)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
 
-  Prayer               Prayer[]
-  Notification         Notification[]
-  Signup               Signup[]
-  Participant          Participant[]
+enum PrayerType {
+  FOR_ONE
+  FOR_CITY_MINISTRY
+  FOR_THE_WORLD
+}
+
+enum PrayerBeaconType {
+  TO_COMMUNITY
+  TO_PRAYER_GROUP
+  TO_LEADERSHIP_TEAM
+}
+
+enum MeetingTag {
+  FRIENDSHIP
+  SHARED_GOSPEL
+  SHARED_FAITH
+  PRAYED_TOGETHER
+  SCRIPTURE_STUDY
+  ENCOURAGEMENT
+  ADDRESSED_DOUBTS
+  ACTS_OF_SERVICE
+  ATTENDED_CHURCH
+  SHARED_PERSONAL_STRUGGLES
+  DISCUSSED_PURPOSE
+  FOLLOWED_UP
+  INVITED_TO_EVENT
+  SHARED_TESTIMONY
+  SHARED_RESOURCES
+  INVITED_TO_SMALL_GROUP
+  INVITED_TO_SERVE
+  EXPLORED_BELIEFS
+  LISTENED_WELL
+  OFFERED_COMFORT
+  ADDRESSED_MISCONCEPTIONS
+  OTHER
+  DISCIPLESHIP
+  WORSHIP
+}
+
+enum Location {
+  HOME
+  CHURCH
+  COFFEE
+  BREAKFAST
+  LUNCH
+  DINNER
+  PARK
+  WORK
+  RECREATION
+  ONLINE
+  GYM
+  OUTDOORS
+  TRIP
+}
+
+enum OneStage {
+  DISCIPLE
+  NEW_BELIEVER
+  SEEKING
+  CURIOUS
+  APATHETIC
+  HOSTILE
+}
+
+enum OneFactType {
+  BACKGROUND
+  FAMILY
+  LIKES
+  DISLIKES
+  WORK
+  HOBBIES
+  EDUCATION
+  SPIRITUAL_BELIEFS
+  LIFE_GOALS
+  FAVORITE
+  FAITH_BACKGROUND
+  COMMON_GROUND
+  PRAYER_POINT
+}
+
+enum ActionStepType {
+  SHARE_GOSPEL
+  SHARE_TESTIMONY
+  INVITE_TO_EVENT
+  SPIRITUAL_CONVERSATION
+  OFFER_PRAYER
+  INVITE_TO_GROUP
+  ENCOURAGEMENT
+  DISCUSS_SCRIPTURE
+  HOST_AT_HOME
+  SHARE_DEVOTIONAL
+  PROVIDE_BIBLICAL_COUNSEL
+  CONNECT_WITH_OTHER_CHRISTIANS
+  SHARE_WORSHIP_MUSIC
+  BUILD_RAPPORT
+  SERVE
+  OTHER
+}
+
+enum StoryType {
+  YOURS
+  GODS
+}
+
+enum StoryChapterType {
+  // Your Story
+  SEEKING
+  CURIOUS
+  SALVATION_EXPERIENCE
+  STRUGGLE
+  HIGHLIGHT
+  LOWLIGHT
+  MISC
+
+  // God's Story
+  CORE_GOSPEL
+  SCRIPTURE_HIGHLIGHT
+  CHARACTER
+}
+
+enum JournalEntryType {
+  PRAYER
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum AppIcon {
+  MAN1
+}
+
+enum AvatarIcon {
+  MAN1
+  MAN2
+  MAN3
+  MAN4
+  MAN5
+  MAN6
+  MAN7
+  WOMAN1
+  WOMAN2
+  WOMAN3
+  WOMAN4
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      Role
+  createdAt DateTime @default(now())
+
+  prayers      Prayer[]
+  meetings     Meeting[]
+  actionSteps  ActionStep[]
+  journalEntries JournalEntry[]
+  godsStories  GodsStory[]
+  yourStories  YourStory[]
+  prompts      Prompt[]
+}
+
+model ActionStep {
+  id          String        @id @default(cuid())
+  notes       String
+  oneId       String
+  isComplete  Boolean
+  targetDate  DateTime?
+  type        ActionStepType
+
+  one         One           @relation(fields: [oneId], references: [id])
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+}
+
+model GodsStory {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model JournalEntry {
+  id        String           @id @default(cuid())
+  type      String
+  details   String
+  userId    String
+  entryType JournalEntryType
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id])
+}
+
+model Meeting {
+  id          String      @id @default(cuid())
+  meetingDate DateTime
+  notes       String
+  oneId       String
+  userId      String
+  tags        MeetingTag[]
+  location    Location
+
+  one         One         @relation(fields: [oneId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
 }
 
 model One {
-  id              String           @id @default(cuid())
-  name            String
-  totalMeetings   Int
-  nextMeetingDate DateTime?
-  meetingHistory  MeetingHistory[]
-  userId          String
-  user            User             @relation(fields: [userId], references: [id])
+  id            String        @id @default(cuid())
+  name          String
+  icon          AvatarIcon
+  stage         OneStage
+  nextMeetingAt DateTime?
+  prayingSince  DateTime
 
-  Prayer          Prayer[]
-}
+  meetings      Meeting[]
+  prayers       Prayer[]
+  actionSteps   ActionStep[]
+  facts         OneFact[]
 
-// Resources Model
-model Resource {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  url         String
-  type        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// Events Model
-model Event {
-  id           String        @id @default(cuid())
-  title        String
-  description  String
-  location     String
-  startDate    DateTime
-  endDate      DateTime
-  type         String
-  organization String
-  participants Participant[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  Signup Signup[]
-}
-
-// Participant (for Events and Mission Trips)
-model Participant {
-  id            String       @id @default(cuid())
-  status        String
-  eventId       String?
-  event         Event?       @relation(fields: [eventId], references: [id])
-  missionTripId String?
-  missionTrip   MissionTrip? @relation(fields: [missionTripId], references: [id])
   userId        String
-  user          User         @relation(fields: [userId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
 }
 
-// Mission Trips Model
-model MissionTrip {
-  id             String        @id @default(cuid())
-  title          String
-  description    String
-  location       String
-  departureDate  DateTime
-  returnDate     DateTime
-  availableSpots Int
-  participants   Participant[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+model OneFact {
+  id       String     @id @default(cuid())
+  oneId    String
+  notes    String
+  icon     AppIcon
+  priority Priority
+  type     OneFactType
 
-  Signup Signup[]
+  one      One        @relation(fields: [oneId], references: [id])
 }
 
-// Notifications Model
-model Notification {
-  id        String   @id @default(cuid())
-  message   String
-  sentAt    DateTime
-  status    String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// Signups Model
-model Signup {
-  id            String       @id @default(cuid())
-  type          String
-  status        String
-  userId        String
-  user          User         @relation(fields: [userId], references: [id])
-  eventId       String?
-  event         Event?       @relation(fields: [eventId], references: [id])
-  missionTripId String?
-  missionTrip   MissionTrip? @relation(fields: [missionTripId], references: [id])
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-}
-
-// Prayers Model
 model Prayer {
-  id             String          @id @default(cuid())
-  prayerCount    Int
-  lastPrayedAt   DateTime?
-  prayerRequests PrayerRequest[]
-  userId         String
-  user           User            @relation(fields: [userId], references: [id])
-  oneId          String
-  one            One             @relation(fields: [oneId], references: [id])
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  lastPrayedAt DateTime?
+  userId       String
+  oneId        String?
+  type         PrayerType
+
+  user         User          @relation(fields: [userId], references: [id])
+  one          One?          @relation(fields: [oneId], references: [id])
+  requests     PrayerRequest[]
+}
+
+model PrayerBeacon {
+  id          String            @id @default(cuid())
+  name        String
+  message     String
+  userId      String
+  oneId       String
+  meetingId   String
+  responses   String[]
+  targetDate  DateTime?
+  priority    Priority
+
+  user        User              @relation(fields: [userId], references: [id])
+  one         One               @relation(fields: [oneId], references: [id])
+  meeting     Meeting           @relation(fields: [meetingId], references: [id])
+  settings    PrayerBeaconSettings
+}
+
+model PrayerBeaconSettings {
+  id           String          @id @default(cuid())
+  name         String
+  shareOneName Boolean
+  shareOwnName Boolean
+  type         PrayerBeaconType
+
+  beaconId     String
+  beacon       PrayerBeacon     @relation(fields: [beaconId], references: [id])
 }
 
 model PrayerRequest {
-  id        String   @id @default(cuid())
-  request   String
-  createdAt DateTime @default(now())
+  id        String     @id @default(cuid())
+  text      String
+  createdAt DateTime   @default(now())
   prayerId  String
-  prayer    Prayer   @relation(fields: [prayerId], references: [id])
+
+  prayer    Prayer      @relation(fields: [prayerId], references: [id])
 }
 
-// Meeting History Model
-model MeetingHistory {
-  id               String   @id @default(cuid())
-  meetingDate      DateTime
-  notes            String?
-  decisionForJesus Boolean
-  oneId            String
-  one              One      @relation(fields: [oneId], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+model Prompt {
+  id        String  @id @default(cuid())
+  userId    String
+  title     String
+  notes     String
+  icon      AppIcon
+  order     Int
+
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model StoryChapter {
+  id          String           @id @default(cuid())
+  storyId     String
+  chapterType StoryChapterType
+  storyType   StoryType
+  title       String
+  notes       String
+  icon        AppIcon
+  order       Int
+
+  story       Story            @relation(fields: [storyId], references: [id])
+}
+
+model Story {
+  id         String          @id @default(cuid())
+  userId     String
+  type       StoryType
+  chapters   StoryChapter[]
+
+  user       User            @relation(fields: [userId], references: [id])
+}
+
+model YourStory {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
