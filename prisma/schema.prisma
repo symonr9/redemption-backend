@@ -227,6 +227,7 @@ model One {
   stage         OneStage
   nextMeetingAt DateTime?
   prayingSince  DateTime
+  hidden        Boolean
 
   meetings      Meeting[]
   prayers       Prayer[]

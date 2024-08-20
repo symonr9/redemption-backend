@@ -4,10 +4,10 @@ const prisma = require('../misc/prisma-client');
 const router = express.Router();
 
 router.post('/create', async (req, res) => {
-  const { name, icon, stage, nextMeetingAt, prayingSince, userId } = req.body;
+  const { name, icon, stage, nextMeetingAt, prayingSince, userId, hidden } = req.body;
   try {
     const one = await prisma.one.create({
-      data: { name, icon, stage, nextMeetingAt, prayingSince, userId }
+      data: { name, icon, stage, nextMeetingAt, prayingSince, userId, hidden }
     });
     res.status(201).json(one);
   } catch (error) {
@@ -52,11 +52,11 @@ router.get('/:id', async (req, res) => {
 
 router.post('/update/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, icon, stage, nextMeetingAt, prayingSince } = req.body;
+  const { name, icon, stage, nextMeetingAt, prayingSince, hidden } = req.body;
   try {
     const one = await prisma.one.update({
       where: { id },
-      data: { name, icon, stage, nextMeetingAt, prayingSince }
+      data: { name, icon, stage, nextMeetingAt, prayingSince, hidden }
     });
     res.json(one);
   } catch (error) {
