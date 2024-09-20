@@ -4,17 +4,17 @@ const prisma = require('../misc/prisma-client');
 
 const router = express.Router();
 
-// Get all prayers
+// Get all beacons
 router.get('/', async (req, res) => {
     try {
         const prayers = await prisma.prayer.findMany();
         res.json(prayers);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch prayers' });
+        res.status(500).json({ error: 'Failed to fetch beacons' });
     }
 });
 
-// Get a single prayer by ID
+// Get a single beacons by ID
 router.get('/:id', async (req, res) => {
     try {
         const prayer = await prisma.prayer.findUnique({
