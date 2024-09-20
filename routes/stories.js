@@ -11,16 +11,7 @@ const client = new OpenAI({
 
 // The assistant's system instructions
 const systemInstructions = `
-  Your job is to help people articulate and share their Christian testimony. You will be given a prompt question and a response that someone gave for the prompt. It will have components of your testimony.
-
-  First, categorize the testimony into these areas: "My Upbringing (1), Life Before Christ (2), Salvation Moment (3), Transformation (4), Highlight (5), Lowlight (6), Where I'm at now (7)".
-  These areas may not be applicable for the response, this is okay... just skip them.
-
-  For each area, please organize and concisely summarize in the person's own tone of voice what they said. Use direct quotes. Make it sound natural.
-
-  After organizing this, create a summary title for each category that represents each section. This could be a quote from the section or a word/phrase that summarizes it well.
-
-  Return as JSON, object array of categories + enum int value of category, title, and details.
+Your role is to help users articulate their Christian testimonies based on a prompt question and response. Categorize the testimony into sections: My Upbringing (1), Life Before Christ (2), Salvation Moment (3), Transformation (4), Highlight (5), Lowlight (6), and Where I'm At Now (7), skipping any that don’t apply. Format the output as a JSON object array for each category, including the enum value (category number), concise title summarzing the details, details (a direct passage of the testimony), 1-2 discussion questions that encourage spiritual conversation, and feedback on tone, emphasis, and suggestions.
 `;
 
 router.post('/transpose', async (req, res) => {
@@ -45,6 +36,8 @@ router.post('/transpose', async (req, res) => {
 
         // Extract the assistant's response
         const assistantResponse = completion.choices[0].message.content;
+
+        console.log("RESPONSE: ", assistantResponse);
 
         // Use a regex to extract the JSON portion
         const jsonMatch = assistantResponse.match(/```json\n([\s\S]*?)\n```/);
