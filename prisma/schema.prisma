@@ -10,19 +10,40 @@ generator client {
 }
 
 model One {
-  id           String      @id @default(cuid())  // Use cuid for generating unique IDs
+  id              String    @id @default(cuid()) // Use cuid for generating unique IDs
+  name            String
+  icon            String    @default("User")
+  stage           Int       @default(5) // Friendly
+  category        Int       @default(2) // Close Friend
+  prayingSince    DateTime? @default(now())
+  gospelChecklist String? // Comma separated list of Ints
+  hidden          Boolean   @default(false)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id]) // Foreign key relation
+  beacons         Beacon[]
+}
+
+model Beacon {
+  id           String    @id @default(cuid())
   name         String
-  icon         String      // Stores the enum key string for AvatarIcon
-  stage        Int    // Enum for OneStage
-  category     Int // Enum for OneCategory
-  prayingSince DateTime?
-  hidden       Boolean     @default(false)
+  message      String?
   userId       String
-  user         User        @relation(fields: [userId], references: [id]) // Foreign key relation
+  user         User      @relation(fields: [userId], references: [id]) // Foreign key relation
+  oneId        String
+  one          One?      @relation(fields: [oneId], references: [id])
+  priority     Int       @default(2) // Normal
+  type         Int       @default(1) // Meeting
+  activeUntil  DateTime?
+  shareOwnName Boolean   @default(true)
 }
 
 model User {
-  id   String  @id @default(cuid())
-  name String
-  ones One[]   // One-to-many relation with One
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  role      Int      @default(2) // User
+  createdAt DateTime @default(now())
+  icon      String   @default("User")
+  ones      One[] // One-to-many relation with One
+  beacons   Beacon[]
 }
