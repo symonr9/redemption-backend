@@ -40,9 +40,21 @@ var client_1 = require("@prisma/client");
 var prisma = new client_1.PrismaClient();
 function main() {
     return __awaiter(this, void 0, void 0, function () {
+        var usersWithPosts;
         return __generator(this, function (_a) {
-            console.log("Running main...");
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0:
+                    console.log("Running main...");
+                    return [4 /*yield*/, prisma.user.findMany({
+                            include: {
+                                posts: true,
+                            },
+                        })];
+                case 1:
+                    usersWithPosts = _a.sent();
+                    console.dir(usersWithPosts, { depth: null });
+                    return [2 /*return*/];
+            }
         });
     });
 }
