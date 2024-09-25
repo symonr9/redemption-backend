@@ -10,40 +10,63 @@ generator client {
 }
 
 model One {
-  id              String    @id @default(cuid()) // Use cuid for generating unique IDs
+  id              String       @id @default(cuid()) // Use cuid for generating unique IDs
   name            String
-  icon            String    @default("User")
-  stage           Int       @default(5) // Friendly
-  category        Int       @default(2) // Close Friend
-  prayingSince    DateTime? @default(now())
+  icon            String       @default("User")
+  stage           Int          @default(5) // Friendly
+  category        Int          @default(2) // Close Friend
+  prayingSince    DateTime?    @default(now())
   gospelChecklist String? // Comma separated list of Ints
-  hidden          Boolean   @default(false)
+  hidden          Boolean      @default(false)
   userId          String
-  user            User      @relation(fields: [userId], references: [id]) // Foreign key relation
+  user            User         @relation(fields: [userId], references: [id]) // Foreign key relation
   beacons         Beacon[]
+  actionSteps     ActionStep[]
+}
+
+model ActionStep {
+  id         String    @id @default(cuid())
+  notes      String?
+  isComplete Boolean   @default(false)
+  targetData DateTime?
+  type       Int       @default(17) // Take out to Coffee
+  oneId      String
+  one        One       @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
 model Beacon {
-  id           String    @id @default(cuid())
+  id           String           @id @default(cuid())
   name         String
   message      String?
   userId       String
-  user         User      @relation(fields: [userId], references: [id]) // Foreign key relation
+  user         User             @relation(fields: [userId], references: [id]) // Foreign key relation
   oneId        String
-  one          One?      @relation(fields: [oneId], references: [id])
-  priority     Int       @default(2) // Normal
-  type         Int       @default(1) // Meeting
+  one          One?             @relation(fields: [oneId], references: [id])
+  priority     Int              @default(2) // Normal
+  type         Int              @default(1) // Meeting
   activeUntil  DateTime?
-  shareOwnName Boolean   @default(true)
+  shareOwnName Boolean          @default(true)
+  activities   BeaconActivity[]
+}
+
+model BeaconActivity {
+  id       String   @id @default(cuid())
+  note     String?
+  date     DateTime @default(now())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id]) // Foreign key relation
+  beaconId String
+  Beacon   Beacon   @relation(fields: [beaconId], references: [id]) // Foreign key relation
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?
-  role      Int      @default(2) // User
-  createdAt DateTime @default(now())
-  icon      String   @default("User")
-  ones      One[] // One-to-many relation with One
-  beacons   Beacon[]
+  id               String           @id @default(cuid())
+  name             String
+  email            String?
+  role             Int              @default(2) // User
+  createdAt        DateTime         @default(now())
+  icon             String           @default("User")
+  ones             One[] // One-to-many relation with One
+  beacons          Beacon[]
+  beaconActivities BeaconActivity[]
 }

@@ -42,6 +42,8 @@ router.get('/:id', async (req, res) => {
             include: {
                 ones: true,
                 beacons: true,
+                actionSteps: true,
+                beaconActivities: true,
             }
         });
         if (user) {
