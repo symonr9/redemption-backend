@@ -2,11 +2,6 @@ const express = require('express');
 const prisma = require('../misc/prisma-client'); // Assuming this is used elsewhere
 const { OpenAI } = require("openai");
 
-const fs = require('fs'); // Required for reading the audio file
-const path = require('path'); // For file paths
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' }); // Specify your upload directory
-
 const router = express.Router();
 
 const client = new OpenAI({
@@ -16,61 +11,32 @@ const client = new OpenAI({
 
 // The assistant's system instructions
 const systemInstructions = `
-Your role is to help users articulate their Christian testimonies based on a prompt question and response. Categorize the testimony into sections: My Upbringing (1), Life Before Christ (2), Salvation Moment (3), Transformation (4), Highlight (5), Lowlight (6), and Where I'm At Now (7), skipping any that don’t apply. Format the output as a JSON object array for each category, including the enum value (category number), concise title summarzing the details, details (a direct passage of the testimony), 1-2 discussion questions that encourage spiritual conversation, and feedback on tone, emphasis, and suggestions.
+Your role is to partition Christian testimonies based on prompt question and their response. Categorize parts of the response into sections (only if it fits the section): My Upbringing (1), Life Before Christ (2), Salvation Moment (3), Transformation (4), Highlight (5), Lowlight (6), and Where I'm At Now (7). Skip any that don't apply. Format the output as a JSON object array for applicable categories, including the 'category' enum value, 'title' summarizing the details concisely, 'details' (a direct quote/paraphrase of the part of the testimony with standalone context), 'questions' (it has to be called questions) string array, 1-2 short, natural present-tense follow-up questions for those who hear user's testimony, and array of 'tags' enum int values of any that apply very well: (1) Youth, (2) AddictionRecovery, (3) Family, (4) CollegeStudent, (5) Parent, (6) Marriage, (7) Grief, (8) Health, (9) Identity, (10) Doubts, (11) SocialJustice, (12) Community, (13) LifeTransition, (14) Purpose, (15) LGBTQ, (16) Military, (17) Immigrant, (18) Prison, (19) Service, (20) Workplace, (21) Racial, (22) Nature, (23) Missions, (24) Finances, (25) Atheist, (26) Culture, (27) Games, (28) Spirituality, (29) Forgiveness, (30) Joy, (31) Peace, (32) Love, (33) Faithfulness, (34) Music, (35) Prayer, (36) Worship, (37) Discipleship.
 `;
 
-router.post('/speechToText', upload.single('audio'), async (req, res) => {
-    try {
-        console.log("req.files: ", req);
-        if (!req.file) {
-            return res.status(400).json({ error: 'No audio file provided' });
-        }
-
-        const audioFilePath = req.file.path; // Path to the uploaded audio file
-        console.log('Received audio file:', audioFilePath);
-
-        console.log("req.body: ", req.body.audio);
-
-        // Send the audio file to OpenAI Whisper API for transcription
-        const transcriptionResponse = await client.audio.transcriptions.create({
-            model: "whisper-1", // Whisper model
-            file: fs.createReadStream(audioFilePath), // Stream the audio file
-        });
-
-        // Extract the transcribed text
-        const transcribedText = transcriptionResponse.text;
-        console.log('Transcribed Text:', transcribedText);
-
-        // Return the transcription as a response
-        res.status(200).json({ transcription: transcribedText });
-    } catch (error) {
-        console.error("Error with OpenAI request:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: error.message });
-    } finally {
-        // Clean up the uploaded file (optional)
-        if (req.file) {
-            fs.unlink(req.file.path, (err) => {
-                if (err) console.error('Error removing temporary file:', err);
-                else console.log('Temporary file deleted.');
-            });
-        }
-    }
-});
-
-router.post('/transpose', async (req, res) => {
-    const { question, response } = req.body;
-    if (!question || !response) {
+router.post('/partition/:userId', async (req, res) => {
+    const { question, userResponse } = req.body;
+    if (!question || !userResponse) {
         res.status(400).json({ error: "Invalid request" });
         return;
     }
 
     try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.params.userId },
+        });
+        if (!user) {
+            res.status(404).json({ error: 'User not found' });
+        };
+        
+        // TODO: Check if user has partitioned yet today.
+
         // Create a chat completion with the system instructions and user input
         const completion = await client.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: systemInstructions },
-                { role: "user", content: `Prompt: ${question}\nResponse: ${response}` }
+                { role: "user", content: `Prompt: ${question}\nResponse: ${userResponse}` }
             ],
         });
 
