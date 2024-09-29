@@ -47,6 +47,7 @@ router.get('/:id', async (req, res) => {
                 },
                 beacons: true,
                 beaconActivities: true,
+                chapters: true,
             }
         });
 

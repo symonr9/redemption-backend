@@ -59,6 +59,21 @@ model BeaconActivity {
   Beacon   Beacon   @relation(fields: [beaconId], references: [id]) // Foreign key relation
 }
 
+model StoryChapter {
+  id        String  @id @default(cuid())
+  storyId   String?
+  type      Int     @default(8)
+  content   String?
+  questions String // Comma Separated String of Strings
+  icon      String  @default("Book")
+  order     Int     @default(1)
+  tag       String? // Comma Separated String of Ints
+  name      String // Comma Separated String of Strings
+  quality   Int     @default(5)
+  userId    String
+  User      User    @relation(fields: [userId], references: [id])
+}
+
 model User {
   id               String           @id @default(cuid())
   name             String
@@ -69,4 +84,5 @@ model User {
   ones             One[] // One-to-many relation with One
   beacons          Beacon[]
   beaconActivities BeaconActivity[]
+  chapters         StoryChapter[]
 }
