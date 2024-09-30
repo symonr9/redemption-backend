@@ -62,13 +62,14 @@ model BeaconActivity {
 model StoryChapter {
   id        String  @id @default(cuid())
   storyId   String?
-  type      Int     @default(8)
+  type      Int     @default(1)
+  title     String
   content   String?
   questions String // Comma Separated String of Strings
   icon      String  @default("Book")
   order     Int     @default(1)
-  tag       String? // Comma Separated String of Ints
-  name      String // Comma Separated String of Strings
+  tags       String? // Comma Separated String of Ints
+  names     String // Comma Separated String of Strings
   quality   Int     @default(5)
   userId    String
   User      User    @relation(fields: [userId], references: [id])
