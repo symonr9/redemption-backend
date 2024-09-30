@@ -6,7 +6,7 @@ const router = express.Router();
 
 const client = new OpenAI({
     apiKey: process.env['OPENAI_API_KEY'],
-  });
+});
 
 
 // The assistant's system instructions
@@ -28,7 +28,7 @@ router.post('/partition/:userId', async (req, res) => {
         if (!user) {
             res.status(404).json({ error: 'User not found' });
         };
-        
+
         // TODO: Check if user has partitioned yet today.
 
         // Create a chat completion with the system instructions and user input
@@ -65,8 +65,9 @@ router.post('/partition/:userId', async (req, res) => {
 
 router.post('/add/:userId', async (req, res) => {
     const { chapterArray } = req.body;
-
-    console.log("Chapter array: ", chapterArray);
+    if (!Array.isArray(chapterArray) || chapterArray.length === 0) {
+        return res.status(400).json({ error: 'Chapters array is required.' });
+    }
 
     try {
         const user = await prisma.user.findUnique({
@@ -76,6 +77,23 @@ router.post('/add/:userId', async (req, res) => {
             res.status(404).json({ error: 'User not found' });
         };
 
+        const createdChapters = await prisma.storyChapter.createMany({
+            data: chapterArray.map((chapter) => ({
+                storyId: chapter.storyId || null,
+                type: chapter.type,
+                title: chapter.title,
+                content: chapter.content || null,
+                questions: chapter.questions.join(','),
+                icon: chapter.iconKey || 'Book',
+                order: chapter.order || 1,
+                tags: chapter.tags ? chapter.tags.join(',') : null,
+                names: chapter.names.join(','),
+                quality: chapter.quality || 5,
+                userId: req.params.userId,
+            })),
+        });
+
+        res.status(200).json({ response: 'OK' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
