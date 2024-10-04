@@ -28,7 +28,7 @@ model ActionStep {
   id         String    @id @default(cuid())
   notes      String?
   isComplete Boolean   @default(false)
-  targetData DateTime?
+  targetDate DateTime?
   type       Int       @default(17) // Take out to Coffee
   oneId      String
   one        One       @relation(fields: [oneId], references: [id]) // Foreign key relation
