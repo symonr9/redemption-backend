@@ -56,20 +56,15 @@ router.post('/partition', async (req, res) => {
     }
 });
 
-router.post('/add/:userId', async (req, res) => {
+router.post('/create', async (req, res) => {
+    const user = req.user;
+
     const { chapterArray } = req.body;
     if (!Array.isArray(chapterArray) || chapterArray.length === 0) {
         return res.status(400).json({ error: 'Chapters array is required.' });
     }
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: req.params.userId },
-        });
-        if (!user) {
-            res.status(404).json({ error: 'User not found' });
-        };
-
         const createdChapters = await prisma.storyChapter.createMany({
             data: chapterArray.map((chapter) => ({
                 storyId: chapter.storyId || null,
@@ -82,7 +77,7 @@ router.post('/add/:userId', async (req, res) => {
                 tags: chapter.tags ? chapter.tags.join(',') : null,
                 names: chapter.names.join(','),
                 quality: chapter.quality || 5,
-                userId: req.params.userId,
+                userId: user.id,
             })),
         });
 

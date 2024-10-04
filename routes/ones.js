@@ -4,73 +4,38 @@ const prisma = require('../misc/prisma-client');
 const router = express.Router();
 
 router.post('/create', async (req, res) => {
-  const { name, icon, stage, nextMeetingAt, prayingSince, userId, hidden } = req.body;
+  const user = req.user;
+  const { one } = req.body;
   try {
-    const one = await prisma.one.create({
-      data: { name, icon, stage, nextMeetingAt, prayingSince, userId, hidden }
+    const result = await prisma.one.create({
+      data: { 
+        name: one.name, 
+        icon: one.iconKey,
+        stage: one.stage, 
+        category: one.category, 
+        userId: user.id
+      }
     });
-    res.status(201).json(one);
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/', async (req, res) => {
+router.post('/update', async (req, res) => {
+  const { one } = req.body;
   try {
-    const ones = await prisma.one.findMany();
-    res.json(ones);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get('/user/:userId', async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const ones = await prisma.one.findMany({
-      where: { userId },
-      include: { meetings: true, prayers: true, actionSteps: true, facts: true }
+    const result = await prisma.one.update({
+      where: { id: one.id },
+      data: { 
+        name: one.name, 
+        icon: one.iconKey,
+        stage: one.stage, 
+        category: one.category,
+        gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join(',') : null,
+      }
     });
-    res.json(ones);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const one = await prisma.one.findUnique({
-      where: { id },
-      include: { meetings: true, prayers: true, actionSteps: true, facts: true }
-    });
-    res.json(one);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post('/update/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, icon, stage, nextMeetingAt, prayingSince, hidden } = req.body;
-  try {
-    const one = await prisma.one.update({
-      where: { id },
-      data: { name, icon, stage, nextMeetingAt, prayingSince, hidden }
-    });
-    res.json(one);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post('/delete/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await prisma.one.delete({
-      where: { id }
-    });
-    res.status(204).end();
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

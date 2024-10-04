@@ -68,7 +68,7 @@ model StoryChapter {
   questions String // Comma Separated String of Strings
   icon      String  @default("Book")
   order     Int     @default(1)
-  tags       String? // Comma Separated String of Ints
+  tags      String? // Comma Separated String of Ints
   names     String // Comma Separated String of Strings
   quality   Int     @default(5)
   userId    String
