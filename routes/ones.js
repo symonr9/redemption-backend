@@ -41,6 +41,21 @@ router.post('/update', async (req, res) => {
   }
 });
 
+router.post('/update/checklist', async (req, res) => {
+  const { one } = req.body;
+  try {
+    const result = await prisma.one.update({
+      where: { id: one.id },
+      data: {
+        gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join(',') : null,
+      }
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/action-steps/update', async (req, res) => {
   const { actionSteps, oneId } = req.body;
 
