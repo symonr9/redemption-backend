@@ -118,4 +118,22 @@ router.post('/update', async (req, res) => {
     }
 });
 
+router.post('/delete', async (req, res) => {
+    const user = req.user;
+
+    const { chapter } = req.body;
+
+    try {
+        await prisma.storyChapter.delete({
+            where: {
+                id: chapter.id,
+            },
+        });
+
+        res.status(200).json({ response: 'OK' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
