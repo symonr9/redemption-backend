@@ -71,14 +71,45 @@ router.post('/create', async (req, res) => {
                 type: chapter.chapterType,
                 title: chapter.title,
                 content: chapter.content || null,
-                questions: chapter.questions.join(','),
+                questions: chapter.questions ? chapter.questions.join(',') : '',
                 icon: chapter.iconKey || 'Book',
                 order: chapter.order || 1,
                 tags: chapter.tags ? chapter.tags.join(',') : null,
-                names: chapter.names.join(','),
+                names: chapter.names ? chapter.names.join(',') : '',
                 quality: chapter.quality || 5,
                 userId: user.id,
             })),
+        });
+
+        res.status(200).json({ response: 'OK' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/update', async (req, res) => {
+    const user = req.user;
+
+    const { chapter } = req.body;
+
+    try {
+        const updatedChapter = await prisma.storyChapter.update({
+            where: {
+                id: chapter.id,
+            },
+            data: {
+                storyId: chapter.storyId || null,
+                type: chapter.chapterType,
+                title: chapter.title,
+                content: chapter.content || null,
+                questions: chapter.questions ? chapter.questions.join(',') : '',
+                icon: chapter.iconKey || 'Book',
+                order: chapter.order || 1,
+                tags: chapter.tags ? chapter.tags.join(',') : null,
+                names: chapter.names ? chapter.names.join(',') : '',
+                quality: chapter.quality || 5,
+                userId: user.id,
+            },
         });
 
         res.status(200).json({ response: 'OK' });
