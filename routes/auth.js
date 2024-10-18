@@ -1,8 +1,28 @@
-// routes.js
+const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const passport = require('../auth/google-oauth');
 
 const router = express.Router();
+
+router.post('/refresh', authenticateJwt, (req, res) => {
+  const { userId } = req.user;
+
+  // Issue a new token
+  const newToken = jwt.sign(
+      { userId },
+      SECRET_KEY,
+      { expiresIn: '1h' }
+  );
+
+  // Set the new token in an HTTP-only cookie (if using web)
+  res.cookie('token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 3600000,
+  });
+
+  res.json({ token: newToken });
+});
 
 // Initiate Google OAuth
 router.get(

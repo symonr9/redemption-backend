@@ -1,5 +1,7 @@
+const authenticateJwt = require('../auth/jwtMiddleware');
 const prisma = require('../misc/prisma-client');
 var express = require("express");
+const jwt = require('jsonwebtoken');
 
 var router = express.Router();
 
@@ -7,7 +9,7 @@ var router = express.Router();
  * URI: Get All Users
  * Notes: None
  **********************************************************************/
-router.get("/", async (req, res) => {
+router.get("/", authenticateJwt, async (req, res) => {
     try {
         const users = await prisma.user.findMany();
         res.json(users);
@@ -24,14 +26,28 @@ router.post("/create", async (req, res) => {
                 name: 'User',
             },
         });
-        res.json(newUser);
+
+        // Generate a JWT
+        const token = jwt.sign(
+            { userId: newUser.id },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+            maxAge: 3600000, // 1 hour
+        });
+
+        res.json({ user: newUser, token });
     } catch (error) {
         res.status(500).json({ error: 'Error creating user' });
         console.error(error);
     }
 });
 
-router.get('/settings/:id', async (req, res) => {
+router.get('/settings/:id', authenticateJwt, async (req, res) => {
     try {
         res.json(req.user);
     } catch (err) {
@@ -40,7 +56,7 @@ router.get('/settings/:id', async (req, res) => {
     }
 });
 
-router.get('/data/:id', async (req, res) => {
+router.get('/data/:id', authenticateJwt, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.params.id },
@@ -66,7 +82,7 @@ router.get('/data/:id', async (req, res) => {
 });
 
 // Update an existing user
-router.post('/update/:id', async (req, res) => {
+router.post('/update/:id', authenticateJwt, async (req, res) => {
     try {
         const { name, email, role, description } = req.body;
         const user = await prisma.user.update({
@@ -81,7 +97,7 @@ router.post('/update/:id', async (req, res) => {
 
 
 // Delete a user
-router.post('/delete/:id', async (req, res) => {
+router.post('/delete/:id', authenticateJwt, async (req, res) => {
     try {
         await prisma.user.delete({
             where: { id: req.params.id },
