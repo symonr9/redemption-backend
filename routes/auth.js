@@ -1,24 +1,24 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const passport = require('../auth/google-oauth');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
-router.post('/refresh', authenticateJwt, (req, res) => {
+router.post('/refresh', (req, res) => {
   const { userId } = req.user;
 
-  // Issue a new token
+  // Generate a JWT
   const newToken = jwt.sign(
-      { userId },
-      SECRET_KEY,
-      { expiresIn: '1h' }
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
   );
 
-  // Set the new token in an HTTP-only cookie (if using web)
   res.cookie('token', newToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 3600000,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 3600000, // 1 hour
   });
 
   res.json({ token: newToken });
@@ -37,32 +37,32 @@ router.get(
   async (req, res) => {
     // Successful authentication
     try {
-        // Check if the user already exists in your database
-        let user = await prisma.user.findUnique({
-          where: { email: req.user.email },
+      // Check if the user already exists in your database
+      let user = await prisma.user.findUnique({
+        where: { email: req.user.email },
+      });
+
+      // If the user doesn't exist, create a new one
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            oauthId: req.user.id,
+            oauthProvider: 'google',
+            name: req.user.displayName,
+            email: req.user.emails[0].value,
+            passwordHash: '', // No password required for OAuth users
+            role: 1, // Default role (e.g., Normal user)
+          },
         });
-  
-        // If the user doesn't exist, create a new one
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              oauthId: req.user.id,
-              oauthProvider: 'google',
-              name: req.user.displayName,
-              email: req.user.emails[0].value,
-              passwordHash: '', // No password required for OAuth users
-              role: 1, // Default role (e.g., Normal user)
-            },
-          });
-        }
-  
-        // After user creation or if they already exist, redirect to the dashboard or homepage
-        res.redirect('/');
-      } catch (err) {
-        console.error('Error during OAuth callback:', err);
-        res.redirect('/login');
       }
+
+      // After user creation or if they already exist, redirect to the dashboard or homepage
+      res.redirect('/');
+    } catch (err) {
+      console.error('Error during OAuth callback:', err);
+      res.redirect('/login');
     }
+  }
 );
 
 // Logout route
