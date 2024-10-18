@@ -18,13 +18,10 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/create", async (req, res) => {
-    const { name, email, role } = req.body;
     try {
         const newUser = await prisma.user.create({
             data: {
-                name,
-                email,
-                role
+                name: 'User',
             },
         });
         res.json(newUser);
@@ -34,8 +31,16 @@ router.post("/create", async (req, res) => {
     }
 });
 
-// Get a single user by ID
-router.get('/:id', async (req, res) => {
+router.get('/settings/:id', async (req, res) => {
+    try {
+        res.json(req.user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch user settings' });
+    }
+});
+
+router.get('/data/:id', async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.params.id },
@@ -56,7 +61,7 @@ router.get('/:id', async (req, res) => {
         }
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Failed to fetch user' });
+        res.status(500).json({ error: 'Failed to fetch user data' });
     }
 });
 

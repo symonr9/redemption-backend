@@ -39,7 +39,9 @@ app.use((req, res, next) => {
 
 app.use(async (req, res, next) => {
     // White-listed
-    if ([].includes(req.path)) {
+    if ([
+        '/users/create'
+    ].includes(req.path)) {
         next();
         return;
     }
@@ -58,6 +60,15 @@ app.use(async (req, res, next) => {
 
     req.user = user;
 
+    console.log(`[Gosp.Init.] User (${user.name}) is accessing ${req.path}`);
+
+    next();
+});
+
+app.use(async (req, res, next) => {
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const requestTime = new Date().toISOString();
+    console.log(`[Gosp.Init.] Access Logged: [IP Address = ${ipAddress}}] [Request Time = ${requestTime}]`);    
     next();
 });
 
