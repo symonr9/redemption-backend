@@ -39,9 +39,7 @@ app.use((req, res, next) => {
 
 app.use(async (req, res, next) => {
     // White-listed
-    if ([
-        '/users/create'
-    ].includes(req.path)) {
+    if (['/users/create'].includes(req.path)) {
         next();
         return;
     }

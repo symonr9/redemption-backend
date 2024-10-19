@@ -95,6 +95,7 @@ model Log {
   id        String   @id @default(cuid())
   type      Int      @default(1)
   createdAt DateTime @default(now())
+  details   String?
   userId    String
   user      User     @relation(fields: [userId], references: [id]) // Foreign key relation
 }

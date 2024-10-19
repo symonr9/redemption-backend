@@ -2,6 +2,10 @@ const authenticateJwt = require('../auth/jwtMiddleware');
 const prisma = require('../misc/prisma-client');
 var express = require("express");
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+
+const { LogType } = require('../enums/enums');
 
 var router = express.Router();
 
@@ -21,26 +25,38 @@ router.get("/", authenticateJwt, async (req, res) => {
 
 router.post("/create", async (req, res) => {
     try {
+        const refreshToken = crypto.randomBytes(32).toString('hex');
+        const encryptedToken = await bcrypt.hash(refreshToken, 10);
+
         const newUser = await prisma.user.create({
             data: {
                 name: 'User',
+                refreshToken: encryptedToken
             },
         });
 
+        const log = await prisma.log.create({
+            data: {
+                type: LogType.UserCreated,
+                userId: newUser.id,
+                details: `User created`
+            }
+        });
+
         // Generate a JWT
-        const token = jwt.sign(
+        const accessToken = jwt.sign(
             { userId: newUser.id },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
 
-        res.cookie('token', token, {
+        res.cookie('accessToken', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 3600000, // 1 hour
         });
 
-        res.json({ user: newUser, token });
+        res.json({ user: newUser, accessToken, refreshToken });
     } catch (error) {
         res.status(500).json({ error: 'Error creating user' });
         console.error(error);

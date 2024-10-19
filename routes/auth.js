@@ -1,27 +1,34 @@
-const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const passport = require('../auth/google-oauth');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const router = express.Router();
 
-router.post('/refresh', (req, res) => {
-  const { userId } = req.user;
+router.post('/refresh', async (req, res) => {
+  const { refreshToken } = req.headers;
+  
+  const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+  if (!isValid) {
+      return res.status(403).json({ error: 'Invalid refresh token' });
+  }
 
   // Generate a JWT
   const newToken = jwt.sign(
-    { userId },
+    { userId: user.id },
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
   );
 
-  res.cookie('token', newToken, {
+  res.cookie('accessToken', newToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 3600000, // 1 hour
   });
 
-  res.json({ token: newToken });
+  // TODO: Implement logic here to generate new refresh token after X days.
+
+  res.json({ accessToken: newToken });
 });
 
 // Initiate Google OAuth
