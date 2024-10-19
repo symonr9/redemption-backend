@@ -9,20 +9,6 @@ const { LogType } = require('../enums/enums');
 
 var router = express.Router();
 
-/**********************************************************************
- * URI: Get All Users
- * Notes: None
- **********************************************************************/
-router.get("/", authenticateJwt, async (req, res) => {
-    try {
-        const users = await prisma.user.findMany();
-        res.json(users);
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching users' });
-        console.error(error);
-    }
-});
-
 router.post("/create", async (req, res) => {
     try {
         const refreshToken = crypto.randomBytes(32).toString('hex');
@@ -63,7 +49,7 @@ router.post("/create", async (req, res) => {
     }
 });
 
-router.get('/settings/:id', authenticateJwt, async (req, res) => {
+router.get('/settings', authenticateJwt, async (req, res) => {
     try {
         res.json(req.user);
     } catch (err) {
@@ -72,10 +58,10 @@ router.get('/settings/:id', authenticateJwt, async (req, res) => {
     }
 });
 
-router.get('/data/:id', authenticateJwt, async (req, res) => {
+router.get('/data', authenticateJwt, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
-            where: { id: req.params.id },
+            where: { id: req.user.id },
             include: {
                 ones: {
                     include: {
