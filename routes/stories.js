@@ -1,3 +1,4 @@
+const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { OpenAI } = require("openai");
@@ -14,7 +15,7 @@ const systemInstructions = `
 Your role is to partition Christian testimonies into sections based on prompt question and their response. Format the output as a JSON object array. Objects should have the following properies: 'category' int value of the section that fits best: (1) Before Christ (Anything related to life, behaviors, struggles, questions before becoming a Christian), (2) Salvation Moment (when they accepted Jesus as Lord and started following Him), (3) After Christ (Anything related to their transformation, life after Christ, growth in Christian life), 'title' string summarizing the section concisely, 'details' string paraphrase of the section in first person with standalone context), 'questions' (it has to be called questions) string array, 1-2 short, natural present-tense follow-up questions for those who hear user's testimony, and 'tags' comma separated string of number values of any that apply to section (can be up to 5): (1) Youth, (2) AddictionRecovery, (3) Family, (4) CollegeStudent, (5) Parent, (6) Marriage, (7) Grief, (8) Health, (9) Identity, (10) Doubts, (11) SocialJustice, (12) Community, (13) LifeTransition, (14) Purpose, (15) LGBTQ, (16) Military, (17) Immigrant, (18) Prison, (19) Service, (20) Workplace, (21) Racial, (22) Nature, (23) Missions, (24) Finances, (25) Atheist, (26) Culture, (27) Games, (28) Spirituality, (29) Forgiveness, (30) Joy, (31) Peace, (32) Love, (33) Faithfulness, (34) Music, (35) Prayer, (36) Worship, (37) Discipleship, (38) Scripture, (39) Upbringing, (40) Suffering, and 'names' comma separated string that are all names that show up in testimony (could be empty), and 'quality' number scale 1-10 indicating how essential it is for someone's testimony (8 or greater is absolutely integral to their faith journey, 5-7 is important to their journey, 3-4 is somewhat important, 1-2 is neutral). Only generate at most 3 sections.
 `;
 
-router.post('/partition', async (req, res) => {
+router.post('/partition', authenticateJwt, async (req, res) => {
     const { question, userResponse } = req.body;
     if (!question || !userResponse) {
         res.status(400).json({ error: "Invalid request" });
@@ -56,7 +57,7 @@ router.post('/partition', async (req, res) => {
     }
 });
 
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
 
     const { chapterArray } = req.body;
@@ -87,7 +88,7 @@ router.post('/create', async (req, res) => {
     }
 });
 
-router.post('/update', async (req, res) => {
+router.post('/update', authenticateJwt, async (req, res) => {
     const user = req.user;
 
     const { chapter } = req.body;
@@ -118,7 +119,7 @@ router.post('/update', async (req, res) => {
     }
 });
 
-router.post('/delete', async (req, res) => {
+router.post('/delete', authenticateJwt, async (req, res) => {
     const user = req.user;
 
     const { chapter } = req.body;

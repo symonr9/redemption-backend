@@ -1,9 +1,10 @@
+const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 
 const router = express.Router();
 
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateJwt, async (req, res) => {
   const user = req.user;
   const { one } = req.body;
   try {
@@ -22,7 +23,7 @@ router.post('/create', async (req, res) => {
   }
 });
 
-router.post('/update', async (req, res) => {
+router.post('/update', authenticateJwt, async (req, res) => {
   const { one } = req.body;
   try {
     const result = await prisma.one.update({
@@ -41,7 +42,7 @@ router.post('/update', async (req, res) => {
   }
 });
 
-router.post('/update/checklist', async (req, res) => {
+router.post('/update/checklist', authenticateJwt, async (req, res) => {
   const { one } = req.body;
   try {
     const result = await prisma.one.update({
@@ -56,7 +57,7 @@ router.post('/update/checklist', async (req, res) => {
   }
 });
 
-router.post('/action-steps/update', async (req, res) => {
+router.post('/action-steps/update', authenticateJwt, async (req, res) => {
   const { actionSteps, oneId } = req.body;
 
   try {

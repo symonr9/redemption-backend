@@ -1,10 +1,10 @@
-// routes/prayer.js
+const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 
 const router = express.Router();
 
-router.get('/active', async (req, res) => {
+router.get('/active', authenticateJwt, async (req, res) => {
     try {
         const beacons = await prisma.beacon.findMany({
             where: {
@@ -22,7 +22,7 @@ router.get('/active', async (req, res) => {
     }
 });
 
-router.post('/create', async (req, res) => {
+router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { beacon } = req.body;
     try {
@@ -47,7 +47,7 @@ router.post('/create', async (req, res) => {
     }
 });
 
-router.post('/activity/create', async (req, res) => {
+router.post('/activity/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
@@ -64,7 +64,7 @@ router.post('/activity/create', async (req, res) => {
     }
 });
 
-router.post('/activity/update', async (req, res) => {
+router.post('/activity/update', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
