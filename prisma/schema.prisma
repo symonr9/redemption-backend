@@ -82,8 +82,19 @@ model User {
   role             Int              @default(2) // User
   createdAt        DateTime         @default(now())
   icon             String           @default("User")
+  refreshToken     String
+  lastRefreshDate  DateTime         @default(now())
   ones             One[] // One-to-many relation with One
   beacons          Beacon[]
   beaconActivities BeaconActivity[]
   chapters         StoryChapter[]
+  log              Log[]
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  type      Int      @default(1)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id]) // Foreign key relation
 }
