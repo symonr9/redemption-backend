@@ -14,10 +14,38 @@ router.get('/active', authenticateJwt, async (req, res) => {
             },
             include: {
                 activities: true,
-            }
+                user: {
+                    select: {
+                        name: true,
+                        icon: true,
+                    },
+                },
+                one: {
+                    select: {
+                        name: true,
+                        icon: true,
+                        stage: true,
+                    },
+                },
+            },
         });
-        res.json(beacons);
+
+        const response = beacons.map(beacon => ({
+            ...beacon,
+            user: {
+                name: beacon.user.name,
+                icon: beacon.user.icon,
+            },
+            one: {
+                name: beacon.one.name,
+                icon: beacon.one.icon,
+                stage: beacon.one.stage,
+            }
+        }));
+
+        res.json(response);
     } catch (err) {
+        console.error('Error fetching beacons:', err); // Log the error for debugging
         res.status(500).json({ error: 'Failed to fetch beacons' });
     }
 });
