@@ -16,7 +16,7 @@ router.post("/create", async (req, res) => {
 
         const newUser = await prisma.user.create({
             data: {
-                name: 'User',
+                name: 'Friend',
                 refreshToken: encryptedToken
             },
         });
