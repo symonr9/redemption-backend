@@ -30,13 +30,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
-    if (req.headers.fixed_auth_token !== process.env.FIXED_AUTH_TOKEN) {
-        return res.status(400).json({ error: 'Invalid fixed_auth_token' });
-    }
-    next();
-});
-
 app.use(async (req, res, next) => {
     // White-listed
     if (['/users/create'].includes(req.path)) {
