@@ -45,6 +45,7 @@ model Beacon {
   priority     Int              @default(2) // Normal
   type         Int              @default(1) // Meeting
   activeUntil  DateTime?
+  tags         String? // Comma Separated String of Ints
   shareOwnName Boolean          @default(true)
   activities   BeaconActivity[]
 }
