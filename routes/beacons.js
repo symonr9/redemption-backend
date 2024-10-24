@@ -40,7 +40,8 @@ router.get('/active', authenticateJwt, async (req, res) => {
                 name: beacon.one.name,
                 icon: beacon.one.icon,
                 stage: beacon.one.stage,
-            }
+            },
+            activities: beacon.activities.map((activity) => ({...activity, username: beacon.user.name }))
         }));
 
         res.json(response);
@@ -68,6 +69,23 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 shareOwnName: beacon.shareOwnName,
                 userId: user.id,
                 tags: beacon.tags ? beacon.tags.join(',') : null,
+            }
+        });
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/deactivate', authenticateJwt, async (req, res) => {
+    const { beacon } = req.body;
+    try {
+        const result = await prisma.beacon.update({
+            where: {
+                id: beacon.id
+            },
+            data: {
+                activeUntil: null,
             }
         });
         res.status(200).json(result);
