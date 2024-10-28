@@ -15,13 +15,15 @@ model One {
   icon            String       @default("User")
   stage           Int          @default(5) // Friendly
   category        Int          @default(2) // Close Friend
-  prayingSince    DateTime?    @default(now())
+  knownSince      DateTime?
   gospelChecklist String? // Comma separated list of Ints
   hidden          Boolean      @default(false)
   userId          String
   user            User         @relation(fields: [userId], references: [id]) // Foreign key relation
   beacons         Beacon[]
   actionSteps     ActionStep[]
+  oneNotes        OneNote[]
+  christians      Christian[]
 }
 
 model ActionStep {
@@ -32,6 +34,40 @@ model ActionStep {
   type       Int       @default(17) // Take out to Coffee
   oneId      String
   one        One       @relation(fields: [oneId], references: [id]) // Foreign key relation
+}
+
+model OneNote {
+  id    String @id @default(cuid())
+  type  Int    @default(1)
+  notes String
+  oneId String
+  one   One    @relation(fields: [oneId], references: [id]) // Foreign key relation
+}
+
+model Salvation {
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  notes     String?
+  location  String?
+  nextSteps String?
+  oneId     String
+}
+
+model Christian {
+  id               String    @id @default(cuid())
+  name             String
+  oneCategory      Int       @default(21) // Friend
+  category         Int       @default(2) // Close Friend
+  oneKnownSince    DateTime?
+  knownSince       DateTime?
+  notes            String?
+  mututalInterests String?
+  lastPrayedFor    DateTime?
+  lastReachedOutTo DateTime?
+  timesPrayed      Int       @default(0)
+  timesReachedOut  Int       @default(0)
+  oneId            String
+  one              One       @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
 model Beacon {
@@ -61,19 +97,20 @@ model BeaconActivity {
 }
 
 model StoryChapter {
-  id        String  @id @default(cuid())
-  storyId   String?
-  type      Int     @default(1)
-  title     String
-  content   String?
-  questions String // Comma Separated String of Strings
-  icon      String  @default("Book")
-  order     Int     @default(1)
-  tags      String? // Comma Separated String of Ints
-  names     String // Comma Separated String of Strings
-  quality   Int     @default(5)
-  userId    String
-  User      User    @relation(fields: [userId], references: [id])
+  id             String  @id @default(cuid())
+  storyId        String?
+  type           Int     @default(1)
+  title          String
+  content        String?
+  originalPrompt String?
+  questions      String // Comma Separated String of Strings
+  icon           String  @default("Book")
+  order          Int     @default(1)
+  tags           String? // Comma Separated String of Ints
+  names          String // Comma Separated String of Strings
+  quality        Int     @default(5)
+  userId         String
+  User           User    @relation(fields: [userId], references: [id])
 }
 
 model User {
