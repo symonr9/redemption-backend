@@ -66,6 +66,9 @@ router.get('/data', authenticateJwt, async (req, res) => {
                 ones: {
                     include: {
                         actionSteps: true,
+                        oneNotes: true,
+                        christians: true,
+                        gospelSteps: true
                     },
                 },
                 chapters: true,
