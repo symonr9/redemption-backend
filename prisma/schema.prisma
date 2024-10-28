@@ -114,19 +114,21 @@ model StoryChapter {
 }
 
 model User {
-  id               String           @id @default(cuid())
-  name             String
-  email            String?
-  role             Int              @default(2) // User
-  createdAt        DateTime         @default(now())
-  icon             String           @default("User")
-  refreshToken     String
-  lastRefreshDate  DateTime         @default(now())
-  ones             One[] // One-to-many relation with One
-  beacons          Beacon[]
-  beaconActivities BeaconActivity[]
-  chapters         StoryChapter[]
-  log              Log[]
+  id                    String           @id @default(cuid())
+  name                  String
+  email                 String?
+  role                  Int              @default(2) // User
+  createdAt             DateTime         @default(now())
+  icon                  String           @default("User")
+  refreshToken          String
+  lastRefreshDate       DateTime         @default(now())
+  lastPartitionDate     DateTime?
+  timesPartitionedToday Int @default(0)
+  ones                  One[] // One-to-many relation with One
+  beacons               Beacon[]
+  beaconActivities      BeaconActivity[]
+  chapters              StoryChapter[]
+  log                   Log[]
 }
 
 model Log {
