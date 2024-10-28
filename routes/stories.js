@@ -78,6 +78,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 tags: chapter.tags ? chapter.tags.join(',') : null,
                 names: chapter.names ? chapter.names.join(',') : '',
                 quality: chapter.quality || 5,
+                originalPrompt: chapter.originalPrompt || null,
                 userId: user.id,
             })),
         });
