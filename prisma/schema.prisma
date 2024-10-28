@@ -24,6 +24,7 @@ model One {
   actionSteps     ActionStep[]
   oneNotes        OneNote[]
   christians      Christian[]
+  gospelSteps     GospelStep[]
 }
 
 model ActionStep {
@@ -44,13 +45,14 @@ model OneNote {
   one   One    @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
-model Salvation {
+model GospelStep {
   id        String   @id @default(cuid())
   date      DateTime @default(now())
+  type      Int      @default(1) // GodIsReal
   notes     String?
-  location  String?
   nextSteps String?
   oneId     String
+  one       One      @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
 model Christian {
@@ -58,6 +60,7 @@ model Christian {
   name             String
   oneCategory      Int       @default(21) // Friend
   category         Int       @default(2) // Close Friend
+  icon             String    @default("User")
   oneKnownSince    DateTime?
   knownSince       DateTime?
   notes            String?
@@ -123,7 +126,7 @@ model User {
   refreshToken          String
   lastRefreshDate       DateTime         @default(now())
   lastPartitionDate     DateTime?
-  timesPartitionedToday Int @default(0)
+  timesPartitionedToday Int              @default(0)
   ones                  One[] // One-to-many relation with One
   beacons               Beacon[]
   beaconActivities      BeaconActivity[]
