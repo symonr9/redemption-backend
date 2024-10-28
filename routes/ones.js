@@ -14,7 +14,8 @@ router.post('/create', authenticateJwt, async (req, res) => {
         icon: one.iconKey,
         stage: one.stage,
         category: one.category,
-        userId: user.id
+        knownSince: one.knownSince,
+        userId: user.id,
       }
     });
     res.status(200).json(result);
@@ -32,6 +33,7 @@ router.post('/update', authenticateJwt, async (req, res) => {
         name: one.name,
         icon: one.iconKey,
         stage: one.stage,
+        knownSince: one.knownSince,
         category: one.category,
         gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join(',') : null,
       }
