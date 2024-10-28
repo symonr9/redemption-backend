@@ -6,50 +6,76 @@ const router = express.Router();
 
 router.get('/active', authenticateJwt, async (req, res) => {
     try {
-        const beacons = await prisma.beacon.findMany({
-            where: {
-                activeUntil: {
-                    gte: new Date(),
-                },
-            },
-            include: {
-                activities: true,
-                user: {
-                    select: {
-                        name: true,
-                        icon: true,
-                    },
-                },
-                one: {
-                    select: {
-                        name: true,
-                        icon: true,
-                        stage: true,
-                    },
-                },
-            },
-        });
-
-        const response = beacons.map(beacon => ({
-            ...beacon,
-            user: {
-                name: beacon.user.name,
-                icon: beacon.user.icon,
-            },
-            one: {
-                name: beacon.one.name,
-                icon: beacon.one.icon,
-                stage: beacon.one.stage,
-            },
-            activities: beacon.activities.map((activity) => ({...activity, username: beacon.user.name }))
-        }));
-
+        const response = await getBeacons(true);
         res.json(response);
     } catch (err) {
         console.error('Error fetching beacons:', err); // Log the error for debugging
         res.status(500).json({ error: 'Failed to fetch beacons' });
     }
 });
+
+/**
+ * Only the user's expired beacons are returned.
+ */
+router.get('/expired', authenticateJwt, async (req, res) => {
+    try {
+        const user = req.user;
+        const response = await getBeacons(false, user.id);
+        res.json(response);
+    } catch (err) {
+        console.error('Error fetching beacons:', err); // Log the error for debugging
+        res.status(500).json({ error: 'Failed to fetch beacons' });
+    }
+});
+
+const getBeacons = async (active, user) => {
+    const whereClause = active ? {
+        activeUntil: {
+            gte: new Date()
+        }
+    } : {
+        activeUntil: {
+            lte: new Date()
+        },
+        userId: user.id
+    };
+
+    const includeClause = {
+        activities: true,
+        user: {
+            select: {
+                name: true,
+                icon: true,
+            },
+        },
+        one: {
+            select: {
+                name: true,
+                icon: true,
+                stage: true,
+            },
+        },
+    };
+
+    const beacons = await prisma.beacon.findMany({
+        where: whereClause,
+        include: includeClause,
+    });
+
+    return beacons.map(beacon => ({
+        ...beacon,
+        user: {
+            name: beacon.user.name,
+            icon: beacon.user.icon,
+        },
+        one: {
+            name: beacon.one.name,
+            icon: beacon.one.icon,
+            stage: beacon.one.stage,
+        },
+        activities: beacon.activities.map((activity) => ({...activity, username: beacon.user.name })),
+    }));
+}
 
 router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
