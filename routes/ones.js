@@ -59,6 +59,218 @@ router.post('/update/checklist', authenticateJwt, async (req, res) => {
   }
 });
 
+router.post('/gospel-steps/add', authenticateJwt, async (req, res) => {
+  try {
+    const { gospelStep } = req.body;
+    let newGospelStep = null;
+
+    await prisma.$transaction(async (tx) => {
+      newGospelStep = await tx.gospelStep.create({
+        data: {
+          date: gospelStep.date || null, // Defaults to now()
+          type: gospelStep.type,
+          notes: gospelStep.notes || null,
+          nextSteps: gospelStep.nextSteps || null,
+          oneId: gospelStep.oneId
+        }
+      });  
+    });
+
+    if (!newGospelStep) {
+      res.status(500).json({ error: 'Something went wrong' });
+      return;
+    }
+    res.status(200).json(newGospelStep);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/gospel-steps/update', authenticateJwt, async (req, res) => {
+  try {
+    const { gospelStep } = req.body;
+    let updatedGospelStep = null;
+
+    await prisma.$transaction(async (tx) => {
+      const existingGospelStep = await tx.gospelStep.findFirst({
+        where: { id: gospelStep.id }
+      });
+      if (!existingGospelStep) {
+        res.status(500).json({ error: `Gospel Step does not exist` });
+        return;
+      }
+  
+      updatedGospelStep = await tx.gospelStep.update({
+        where: {
+          id: gospelStep.id,
+        },
+        data: {
+          date: gospelStep.date,
+          type: gospelStep.type,
+          notes: gospelStep.notes || null,
+          nextSteps: gospelStep.nextSteps || null,
+          oneId: gospelStep.oneId
+        }
+      });  
+    });
+
+    if (!updatedGospelStep) {
+      res.status(500).json({ error: 'Something went wrong' });
+      return;
+    }
+    res.status(200).json(updatedGospelStep);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/one-notes/add', authenticateJwt, async (req, res) => {
+  try {
+    const { oneNote } = req.body;
+    let newOneNote = null;
+
+    await prisma.$transaction(async (tx) => {
+      newOneNote = await tx.oneNote.create({
+        data: {
+          date: oneNote.date || null, // Defaults to now()
+          type: oneNote.type,
+          notes: oneNote.notes || "",
+          oneId: oneNote.oneId
+        }
+      });  
+    });
+
+    if (!newOneNote) {
+      res.status(500).json({ error: 'Something went wrong' });
+      return;
+    }
+    res.status(200).json(newOneNote);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/one-notes/update', authenticateJwt, async (req, res) => {
+  try {
+    const { oneNote } = req.body;
+    let updatedOneNote = null;
+
+    await prisma.$transaction(async (tx) => {
+      const existingOneNote = await tx.oneNote.findFirst({
+        where: { id: oneNote.id }
+      });
+      if (!existingOneNote) {
+        res.status(500).json({ error: `One Note does not exist` });
+        return;
+      }
+  
+      updatedOneNote = await tx.oneNote.update({
+        where: {
+          id: oneNote.id
+        },
+        data: {
+          date: oneNote.date || null, // Defaults to now()
+          type: oneNote.type,
+          notes: oneNote.notes || "",
+          oneId: oneNote.oneId
+        }
+      });  
+    });
+
+    if (!updatedOneNote) {
+      res.status(500).json({ error: 'Something went wrong' });
+      return;
+    }
+    res.status(200).json(updatedOneNote);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/christians/add', authenticateJwt, async (req, res) => {
+  try {
+    const { christian } = req.body;
+    let newChristian = null;
+
+    await prisma.$transaction(async (tx) => {
+      newChristian = await tx.christian.create({
+        data: {
+          name: christian.name,
+          oneCategory: christian.oneCategory,
+          category: christian.category,
+          icon: christian.icon,
+          oneKnownSince: christian.oneKnownSince,
+          knownSince: christian.knownSince,
+          notes: christian.notes,
+          mutualInterests: christian.mutualInterests,
+          lastPrayedFor: christian.lastPrayedFor,
+          lastReachedOutTo: christian.lastReachedOutTo,
+          timesPrayed: christian.timesPrayed || 0, // Default to 0 if not provided
+          timesReachedOut: christian.timesReachedOut || 0, // Default to 0 if not provided
+          oneId: christian.oneId,
+        },
+      });
+    });
+
+    if (!newChristian) {
+      res.status(500).json({ error: 'Something went wrong' });
+      return;
+    }
+    res.status(200).json(newChristian);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/christians/update', authenticateJwt, async (req, res) => {
+  try {
+    const { christian } = req.body;
+    let updatedChristian = null;
+
+    await prisma.$transaction(async (tx) => {
+      const existingChristian = await tx.christian.findFirst({
+        where: { id: christian.id }
+      });
+      if (!existingChristian) {
+        res.status(500).json({ error: `Christian does not exist` });
+        return;
+      }
+
+      updatedChristian = await tx.christian.create({
+        data: {
+          name: christian.name,
+          oneCategory: christian.oneCategory,
+          category: christian.category,
+          icon: christian.icon,
+          oneKnownSince: christian.oneKnownSince,
+          knownSince: christian.knownSince,
+          notes: christian.notes,
+          mutualInterests: christian.mutualInterests,
+          lastPrayedFor: christian.lastPrayedFor,
+          lastReachedOutTo: christian.lastReachedOutTo,
+          timesPrayed: christian.timesPrayed || 0, // Default to 0 if not provided
+          timesReachedOut: christian.timesReachedOut || 0, // Default to 0 if not provided
+          oneId: christian.oneId,
+        },
+      });
+    });
+
+    if (!updatedChristian) {
+      res.status(500).json({ error: 'Something went wrong' });
+      return;
+    }
+    res.status(200).json(updatedChristian);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
 router.post('/action-steps/update', authenticateJwt, async (req, res) => {
   const { actionSteps, oneId } = req.body;
 

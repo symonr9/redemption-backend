@@ -39,6 +39,7 @@ model ActionStep {
 
 model OneNote {
   id    String @id @default(cuid())
+  date      DateTime @default(now())
   type  Int    @default(1)
   notes String
   oneId String
