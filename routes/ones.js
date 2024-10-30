@@ -11,7 +11,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
     const result = await prisma.one.create({
       data: {
         name: one.name,
-        icon: one.iconKey,
+        icon: one.icon,
         stage: one.stage,
         category: one.category,
         knownSince: one.knownSince,
@@ -31,7 +31,7 @@ router.post('/update', authenticateJwt, async (req, res) => {
       where: { id: one.id },
       data: {
         name: one.name,
-        icon: one.iconKey,
+        icon: one.icon,
         stage: one.stage,
         knownSince: one.knownSince,
         category: one.category,
