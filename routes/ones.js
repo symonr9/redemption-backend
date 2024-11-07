@@ -62,7 +62,7 @@ router.post('/update/checklist', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/gospel-steps/add', authenticateJwt, async (req, res) => {
+router.post('/gospelSteps/create', authenticateJwt, async (req, res) => {
   try {
     const { gospelStep } = req.body;
     let newGospelStep = null;
@@ -76,7 +76,7 @@ router.post('/gospel-steps/add', authenticateJwt, async (req, res) => {
           nextSteps: gospelStep.nextSteps || null,
           oneId: gospelStep.oneId
         }
-      });  
+      });
     });
 
     if (!newGospelStep) {
@@ -90,7 +90,7 @@ router.post('/gospel-steps/add', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/gospel-steps/update', authenticateJwt, async (req, res) => {
+router.post('/gospelSteps/update', authenticateJwt, async (req, res) => {
   try {
     const { gospelStep } = req.body;
     let updatedGospelStep = null;
@@ -103,7 +103,7 @@ router.post('/gospel-steps/update', authenticateJwt, async (req, res) => {
         res.status(500).json({ error: `Gospel Step does not exist` });
         return;
       }
-  
+
       updatedGospelStep = await tx.gospelStep.update({
         where: {
           id: gospelStep.id,
@@ -115,7 +115,7 @@ router.post('/gospel-steps/update', authenticateJwt, async (req, res) => {
           nextSteps: gospelStep.nextSteps || null,
           oneId: gospelStep.oneId
         }
-      });  
+      });
     });
 
     if (!updatedGospelStep) {
@@ -129,7 +129,30 @@ router.post('/gospel-steps/update', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/one-notes/add', authenticateJwt, async (req, res) => {
+router.post('/gospelSteps/delete', authenticateJwt, async (req, res) => {
+  try {
+    const { gospelStep } = req.body;
+
+    const existingGospelStep = await prisma.gospelStep.findFirst({
+      where: { id: gospelStep.id }
+    });
+    if (!existingGospelStep) {
+      res.status(500).json({ error: `Gospel Step does not exist` });
+      return;
+    }
+
+    await prisma.gospelStep.delete({
+      where: { id: gospelStep.id },
+    });
+    
+    res.status(200).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/oneNotes/create', authenticateJwt, async (req, res) => {
   try {
     const { oneNote } = req.body;
     let newOneNote = null;
@@ -142,7 +165,7 @@ router.post('/one-notes/add', authenticateJwt, async (req, res) => {
           notes: oneNote.notes || "",
           oneId: oneNote.oneId
         }
-      });  
+      });
     });
 
     if (!newOneNote) {
@@ -156,7 +179,7 @@ router.post('/one-notes/add', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/one-notes/update', authenticateJwt, async (req, res) => {
+router.post('/oneNotes/update', authenticateJwt, async (req, res) => {
   try {
     const { oneNote } = req.body;
     let updatedOneNote = null;
@@ -169,7 +192,7 @@ router.post('/one-notes/update', authenticateJwt, async (req, res) => {
         res.status(500).json({ error: `One Note does not exist` });
         return;
       }
-  
+
       updatedOneNote = await tx.oneNote.update({
         where: {
           id: oneNote.id
@@ -180,7 +203,7 @@ router.post('/one-notes/update', authenticateJwt, async (req, res) => {
           notes: oneNote.notes || "",
           oneId: oneNote.oneId
         }
-      });  
+      });
     });
 
     if (!updatedOneNote) {
@@ -194,7 +217,30 @@ router.post('/one-notes/update', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/christians/add', authenticateJwt, async (req, res) => {
+router.post('/oneNotes/delete', authenticateJwt, async (req, res) => {
+  try {
+    const { oneNote } = req.body;
+
+    const existingOneNote = await prisma.oneNote.findFirst({
+      where: { id: oneNote.id }
+    });
+    if (!existingOneNote) {
+      res.status(500).json({ error: `One Note does not exist` });
+      return;
+    }
+
+    await prisma.oneNote.delete({
+      where: { id: oneNote.id },
+    });
+    
+    res.status(200).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/christians/create', authenticateJwt, async (req, res) => {
   try {
     const { christian } = req.body;
     let newChristian = null;
@@ -274,7 +320,30 @@ router.post('/christians/update', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/action-steps/update', authenticateJwt, async (req, res) => {
+router.post('/christians/delete', authenticateJwt, async (req, res) => {
+  try {
+    const { christian } = req.body;
+
+    const existingChristian = await prisma.christian.findFirst({
+      where: { id: christian.id }
+    });
+    if (!existingChristian) {
+      res.status(500).json({ error: `Christian does not exist` });
+      return;
+    }
+
+    await prisma.christian.delete({
+      where: { id: christian.id },
+    });
+    
+    res.status(200).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
+router.post('/actionSteps/update', authenticateJwt, async (req, res) => {
   const { actionSteps, oneId } = req.body;
 
   try {
