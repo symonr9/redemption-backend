@@ -290,7 +290,10 @@ router.post('/christians/update', authenticateJwt, async (req, res) => {
         return;
       }
 
-      updatedChristian = await tx.christian.create({
+      updatedChristian = await tx.christian.update({
+        where: {
+          id: christian.id,
+        },
         data: {
           name: christian.name,
           oneCategory: christian.oneCategory,
