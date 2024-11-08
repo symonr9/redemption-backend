@@ -65,7 +65,7 @@ model Christian {
   oneKnownSince    DateTime?
   knownSince       DateTime?
   notes            String?
-  mututalInterests String?
+  mutualInterests String?
   lastPrayedFor    DateTime?
   lastReachedOutTo DateTime?
   timesPrayed      Int       @default(0)
