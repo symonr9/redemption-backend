@@ -58,33 +58,112 @@ router.get('/settings', authenticateJwt, async (req, res) => {
     }
 });
 
-router.get('/data', authenticateJwt, async (req, res) => {
+router.get('/data/:spec', authenticateJwt, async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.id },
-            include: {
-                ones: {
-                    include: {
-                        actionSteps: true,
-                        oneNotes: true,
-                        christians: true,
-                        gospelSteps: true
-                    },
-                },
-                chapters: true,
-            }
-        });
+        const spec = req.params.spec || 'all';
+        const includeUser = spec === 'user' || spec === 'all';
+        const includeOnes = spec === 'ones' || spec === 'all';
+        const includeStories = spec === 'stories' || spec === 'all';
+        const includeBeacons = spec === 'beacons' || spec === 'all';
 
-        if (user) {
-            res.json(user);
+        const userIncludeOptions = {};
+
+        if (includeOnes) {
+            userIncludeOptions.ones = {
+                include: {
+                    actionSteps: true,
+                    oneNotes: true,
+                    christians: true,
+                    gospelSteps: true,
+                },
+            };
+        }
+        if (includeStories) {
+            userIncludeOptions.chapters = true;
+        }
+
+        const user = (includeUser || includeOnes || includeStories)
+            ? await prisma.user.findUnique({
+                where: { id: req.user.id },
+                include: userIncludeOptions,
+              })
+            : null;
+
+        let activeBeacons = [];
+        let expiredBeacons = [];
+
+        if (includeBeacons) {
+            const allBeacons = await getBeacons(req.user.id);
+            const currentDate = new Date();
+
+            allBeacons.forEach(beacon => {
+                if (beacon.activeUntil >= currentDate) {
+                    activeBeacons.push(beacon);
+                } else {
+                    expiredBeacons.push(beacon);
+                }
+            });
+        }
+
+        const response = {
+            ...(user && { user }),
+            ...(includeOnes && user?.ones && { ones: user.ones }),
+            ...(includeStories && user?.chapters && { chapters: user.chapters }),
+            ...(includeBeacons && { activeBeacons, expiredBeacons })
+        };
+
+        if (Object.keys(response).length) {
+            res.json(response);
         } else {
-            res.status(404).json({ error: 'User not found' });
+            res.status(404).json({ error: 'Requested data not found' });
         }
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to fetch user data' });
     }
 });
+
+
+const getBeacons = async (userId) => {
+    const includeClause = {
+        activities: true,
+        user: {
+            select: {
+                name: true,
+                icon: true,
+            },
+        },
+        one: {
+            select: {
+                name: true,
+                icon: true,
+                stage: true,
+            },
+        },
+    };
+
+    const beacons = await prisma.beacon.findMany({
+        where: { userId },
+        include: includeClause,
+    });
+
+    return beacons.map(beacon => ({
+        ...beacon,
+        user: {
+            name: beacon.user.name,
+            icon: beacon.user.icon,
+        },
+        one: {
+            name: beacon.one.name,
+            icon: beacon.one.icon,
+            stage: beacon.one.stage,
+        },
+        activities: beacon.activities.map(activity => ({
+            ...activity,
+            username: beacon.user.name,
+        })),
+    }));
+}
 
 // Update an existing user
 router.post('/update/:id', authenticateJwt, async (req, res) => {
