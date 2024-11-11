@@ -4,7 +4,7 @@ const prisma = require('../misc/prisma-client');
 
 const router = express.Router();
 
-router.post('/create', authenticateJwt, async (req, res) => {
+router.post('/one/create', authenticateJwt, async (req, res) => {
   const user = req.user;
   const { one } = req.body;
   try {
@@ -25,7 +25,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/update', authenticateJwt, async (req, res) => {
+router.post('/one/update', authenticateJwt, async (req, res) => {
   const { one } = req.body;
   try {
     const result = await prisma.one.update({
