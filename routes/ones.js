@@ -36,7 +36,7 @@ router.post('/one/update', authenticateJwt, async (req, res) => {
         stage: one.stage,
         knownSince: one.knownSince,
         category: one.category,
-        gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join(',') : null,
+        gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join('∫') : null,
       }
     });
     res.status(200).json(result);
@@ -52,7 +52,7 @@ router.post('/update/checklist', authenticateJwt, async (req, res) => {
     const result = await prisma.one.update({
       where: { id: one.id },
       data: {
-        gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join(',') : null,
+        gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join('∫') : null,
       }
     });
     res.status(200).json(result);

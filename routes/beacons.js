@@ -21,7 +21,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 activeUntil: tomorrow,
                 shareOwnName: beacon.shareOwnName,
                 userId: user.id,
-                tags: beacon.tags ? beacon.tags.join(',') : null,
+                tags: beacon.tags ? beacon.tags.join('∫') : null,
             }
         });
         res.status(200).json(result);

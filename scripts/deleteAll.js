@@ -22,6 +22,9 @@ async function deleteAllData() {
     await prisma.beacon.deleteMany({});
     await prisma.actionStep.deleteMany({});
     await prisma.storyChapter.deleteMany({});
+    await prisma.oneNote.deleteMany({});
+    await prisma.gospelStep.deleteMany({});
+    await prisma.christian.deleteMany({});
     await prisma.one.deleteMany({});
     await prisma.log.deleteMany({});
     await prisma.user.deleteMany({});
