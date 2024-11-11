@@ -62,7 +62,7 @@ router.post('/update/checklist', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/gospelSteps/create', authenticateJwt, async (req, res) => {
+router.post('/gospelStep/create', authenticateJwt, async (req, res) => {
   try {
     const { gospelStep } = req.body;
     let newGospelStep = null;
@@ -90,7 +90,7 @@ router.post('/gospelSteps/create', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/gospelSteps/update', authenticateJwt, async (req, res) => {
+router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
   try {
     const { gospelStep } = req.body;
     let updatedGospelStep = null;
@@ -129,7 +129,7 @@ router.post('/gospelSteps/update', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/gospelSteps/delete', authenticateJwt, async (req, res) => {
+router.post('/gospelStep/delete', authenticateJwt, async (req, res) => {
   try {
     const { gospelStep } = req.body;
 
@@ -152,7 +152,7 @@ router.post('/gospelSteps/delete', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/oneNotes/create', authenticateJwt, async (req, res) => {
+router.post('/oneNote/create', authenticateJwt, async (req, res) => {
   try {
     const { oneNote } = req.body;
     let newOneNote = null;
@@ -179,7 +179,7 @@ router.post('/oneNotes/create', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/oneNotes/update', authenticateJwt, async (req, res) => {
+router.post('/oneNote/update', authenticateJwt, async (req, res) => {
   try {
     const { oneNote } = req.body;
     let updatedOneNote = null;
@@ -217,7 +217,7 @@ router.post('/oneNotes/update', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/oneNotes/delete', authenticateJwt, async (req, res) => {
+router.post('/oneNote/delete', authenticateJwt, async (req, res) => {
   try {
     const { oneNote } = req.body;
 
@@ -240,7 +240,7 @@ router.post('/oneNotes/delete', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/christians/create', authenticateJwt, async (req, res) => {
+router.post('/christian/create', authenticateJwt, async (req, res) => {
   try {
     const { christian } = req.body;
     let newChristian = null;
@@ -276,7 +276,7 @@ router.post('/christians/create', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/christians/update', authenticateJwt, async (req, res) => {
+router.post('/christian/update', authenticateJwt, async (req, res) => {
   try {
     const { christian } = req.body;
     let updatedChristian = null;
@@ -323,7 +323,7 @@ router.post('/christians/update', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/christians/delete', authenticateJwt, async (req, res) => {
+router.post('/christian/delete', authenticateJwt, async (req, res) => {
   try {
     const { christian } = req.body;
 
