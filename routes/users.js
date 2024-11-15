@@ -49,6 +49,25 @@ router.post("/create", async (req, res) => {
     }
 });
 
+router.post("/update", async (req, res) => {
+    try {
+        const { user } = req.body;
+        try {
+          const result = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              name: user.name,
+              icon: user.icon,
+              email: user.email,
+            }
+          });
+          res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ error: 'Error updating user' });
+        console.error(error);
+    }
+});
+
 router.get('/settings', authenticateJwt, async (req, res) => {
     try {
         res.json(req.user);
