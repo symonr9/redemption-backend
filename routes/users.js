@@ -49,7 +49,7 @@ router.post("/create", async (req, res) => {
     }
 });
 
-router.post("/update", async (req, res) => {
+router.post("/user/update", async (req, res) => {
     try {
         const { user } = req.body;
           const result = await prisma.user.update({
