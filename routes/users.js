@@ -53,11 +53,10 @@ router.post("/user/update", async (req, res) => {
     try {
         const { user } = req.body;
           const result = await prisma.user.update({
-            where: { id: user.id },
+            where: { id: req.user.id },
             data: {
               name: user.name,
               icon: user.icon,
-              email: user.email,
             }
           });
           res.status(200).json(result);
