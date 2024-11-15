@@ -52,7 +52,6 @@ router.post("/create", async (req, res) => {
 router.post("/update", async (req, res) => {
     try {
         const { user } = req.body;
-        try {
           const result = await prisma.user.update({
             where: { id: user.id },
             data: {
