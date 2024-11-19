@@ -38,22 +38,24 @@ model ActionStep {
 }
 
 model OneNote {
-  id    String @id @default(cuid())
-  date      DateTime @default(now())
-  type  Int    @default(1)
+  id    String   @id @default(cuid())
+  date  DateTime @default(now())
+  type  Int      @default(1)
   notes String
   oneId String
-  one   One    @relation(fields: [oneId], references: [id]) // Foreign key relation
+  one   One      @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
 model GospelStep {
-  id        String   @id @default(cuid())
-  date      DateTime @default(now())
-  type      Int      @default(1) // GodIsReal
-  notes     String?
-  nextSteps String?
-  oneId     String
-  one       One      @relation(fields: [oneId], references: [id]) // Foreign key relation
+  id         String   @id @default(cuid())
+  date       DateTime @default(now())
+  type       Int      @default(1) // GodIsReal
+  layoutType Int      @default(1) // Binary
+  notes      String?
+  nextSteps  String?
+  rating     Int      @default(1)
+  oneId      String
+  one        One      @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
 model Christian {
@@ -65,7 +67,7 @@ model Christian {
   oneKnownSince    DateTime?
   knownSince       DateTime?
   notes            String?
-  mutualInterests String?
+  mutualInterests  String?
   lastPrayedFor    DateTime?
   lastReachedOutTo DateTime?
   timesPrayed      Int       @default(0)
