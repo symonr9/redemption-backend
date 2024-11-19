@@ -72,6 +72,7 @@ router.post('/gospelStep/create', authenticateJwt, async (req, res) => {
         data: {
           date: gospelStep.date || null, // Defaults to now()
           type: gospelStep.type,
+          layoutType: gospelStep.layoutType,
           notes: gospelStep.notes || null,
           nextSteps: gospelStep.nextSteps || null,
           oneId: gospelStep.oneId
@@ -111,6 +112,7 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
         data: {
           date: gospelStep.date,
           type: gospelStep.type,
+          layoutType: gospelStep.layoutType,
           notes: gospelStep.notes || null,
           nextSteps: gospelStep.nextSteps || null,
           oneId: gospelStep.oneId
