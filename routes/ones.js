@@ -62,35 +62,7 @@ router.post('/update/checklist', authenticateJwt, async (req, res) => {
   }
 });
 
-router.post('/gospelStep/create', authenticateJwt, async (req, res) => {
-  try {
-    const { gospelStep } = req.body;
-    let newGospelStep = null;
-
-    await prisma.$transaction(async (tx) => {
-      newGospelStep = await tx.gospelStep.create({
-        data: {
-          date: gospelStep.date || null, // Defaults to now()
-          type: gospelStep.type,
-          layoutType: gospelStep.layoutType,
-          notes: gospelStep.notes || null,
-          nextSteps: gospelStep.nextSteps || null,
-          oneId: gospelStep.oneId
-        }
-      });
-    });
-
-    if (!newGospelStep) {
-      res.status(500).json({ error: 'Something went wrong' });
-      return;
-    }
-    res.status(200).json(newGospelStep);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
-  }
-});
-
+// Creates and updates
 router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
   try {
     const { gospelStep } = req.body;
@@ -98,26 +70,37 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
 
     await prisma.$transaction(async (tx) => {
       const existingGospelStep = await tx.gospelStep.findFirst({
-        where: { id: gospelStep.id }
+        where: { type: gospelStep.type }
       });
-      if (!existingGospelStep) {
-        res.status(500).json({ error: `Gospel Step does not exist` });
-        return;
-      }
 
-      updatedGospelStep = await tx.gospelStep.update({
-        where: {
-          id: gospelStep.id,
-        },
-        data: {
-          date: gospelStep.date,
-          type: gospelStep.type,
-          layoutType: gospelStep.layoutType,
-          notes: gospelStep.notes || null,
-          nextSteps: gospelStep.nextSteps || null,
-          oneId: gospelStep.oneId
-        }
-      });
+      if (!existingGospelStep) { // Create
+        updatedGospelStep = await tx.gospelStep.create({
+          data: {
+            date: gospelStep.date,
+            type: gospelStep.type,
+            layoutType: gospelStep.layoutType,
+            notes: gospelStep.notes || null,
+            nextSteps: gospelStep.nextSteps || null,
+            rating: gospelStep.rating,
+            oneId: gospelStep.oneId
+          }
+        });
+        return;
+      } else { // Update
+        updatedGospelStep = await tx.gospelStep.update({
+          where: {
+            id: gospelStep.id,
+          },
+          data: {
+            date: gospelStep.date,
+            layoutType: gospelStep.layoutType,
+            notes: gospelStep.notes || null,
+            nextSteps: gospelStep.nextSteps || null,
+            rating: gospelStep.rating,
+            oneId: gospelStep.oneId
+          }
+        });
+      }
     });
 
     if (!updatedGospelStep) {
@@ -146,7 +129,7 @@ router.post('/gospelStep/delete', authenticateJwt, async (req, res) => {
     await prisma.gospelStep.delete({
       where: { id: gospelStep.id },
     });
-    
+
     res.status(200).end();
   } catch (error) {
     console.error(error);
@@ -234,7 +217,7 @@ router.post('/oneNote/delete', authenticateJwt, async (req, res) => {
     await prisma.oneNote.delete({
       where: { id: oneNote.id },
     });
-    
+
     res.status(200).end();
   } catch (error) {
     console.error(error);
@@ -340,7 +323,7 @@ router.post('/christian/delete', authenticateJwt, async (req, res) => {
     await prisma.christian.delete({
       where: { id: christian.id },
     });
-    
+
     res.status(200).end();
   } catch (error) {
     console.error(error);
