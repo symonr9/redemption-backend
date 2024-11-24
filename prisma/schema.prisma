@@ -49,11 +49,11 @@ model OneNote {
 model GospelStep {
   id         String   @id @default(cuid())
   date       DateTime @default(now())
-  type       Int      @default(1) // GodIsReal
+  type       Int      @default(1) // SpiritualConversations
   layoutType Int      @default(1) // Binary
   notes      String?
   nextSteps  String?
-  rating     Int      @default(1)
+  rating     Int      @default(0)
   oneId      String
   one        One      @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
