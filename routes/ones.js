@@ -70,13 +70,13 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
 
     await prisma.$transaction(async (tx) => {
       const existingGospelStep = await tx.gospelStep.findFirst({
-        where: { type: gospelStep.type }
+        where: { id: gospelStep.id }
       });
 
       if (!existingGospelStep) { // Create
         updatedGospelStep = await tx.gospelStep.create({
           data: {
-            date: gospelStep.date,
+            date: gospelStep.date || null,
             type: gospelStep.type,
             layoutType: gospelStep.layoutType,
             notes: gospelStep.notes || null,
@@ -92,7 +92,7 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
             id: gospelStep.id,
           },
           data: {
-            date: gospelStep.date,
+            date: gospelStep.date || null,
             layoutType: gospelStep.layoutType,
             notes: gospelStep.notes || null,
             nextSteps: gospelStep.nextSteps || null,
