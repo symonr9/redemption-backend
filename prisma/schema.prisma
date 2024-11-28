@@ -104,41 +104,39 @@ model BeaconActivity {
 }
 
 model StoryChapter {
-  id              String   @id @default(cuid())
-  storyId         String?
-  type            Int      @default(1)
-  title           String
-  content         String?
-  originalPrompt  String?
-  questions       String // Comma Separated String of Strings
-  icon            String   @default("Book")
-  order           Int      @default(1)
-  tags            String? // Comma Separated String of Ints
-  names           String // Comma Separated String of Strings
-  quality         Int      @default(5)
-  userId          String
-  lastModified    DateTime @default(now())
-  lastPartitioned DateTime @default(now())
-  extraTokenCount Int      @default(0)
-  User            User     @relation(fields: [userId], references: [id])
+  id             String   @id @default(cuid())
+  storyId        String?
+  type           Int      @default(1)
+  title          String
+  content        String?
+  originalPrompt String?
+  questions      String // Comma Separated String of Strings
+  icon           String   @default("Book")
+  order          Int      @default(1)
+  tags           String? // Comma Separated String of Ints
+  names          String // Comma Separated String of Strings
+  quality        Int      @default(5)
+  userId         String
+  lastModified   DateTime @default(now())
+  User           User     @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id                    String           @id @default(cuid())
-  name                  String
-  email                 String?
-  role                  Int              @default(2) // User
-  createdAt             DateTime         @default(now())
-  icon                  String           @default("User")
-  refreshToken          String
-  lastRefreshDate       DateTime         @default(now())
-  lastPartitionDate     DateTime?
-  timesPartitionedToday Int              @default(0)
-  ones                  One[] // One-to-many relation with One
-  beacons               Beacon[]
-  beaconActivities      BeaconActivity[]
-  chapters              StoryChapter[]
-  log                   Log[]
+  id                  String           @id @default(cuid())
+  name                String
+  email               String?
+  role                Int              @default(2) // User
+  createdAt           DateTime         @default(now())
+  icon                String           @default("User")
+  refreshToken        String
+  lastRefreshDate     DateTime         @default(now())
+  lastPartitionDate   DateTime?
+  extraPartitionCount Int              @default(0)
+  ones                One[] // One-to-many relation with One
+  beacons             Beacon[]
+  beaconActivities    BeaconActivity[]
+  chapters            StoryChapter[]
+  log                 Log[]
 }
 
 model Log {
