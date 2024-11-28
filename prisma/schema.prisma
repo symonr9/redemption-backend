@@ -28,13 +28,14 @@ model One {
 }
 
 model ActionStep {
-  id         String    @id @default(cuid())
-  notes      String?
-  isComplete Boolean   @default(false)
-  targetDate DateTime?
-  type       Int       @default(17) // Take out to Coffee
-  oneId      String
-  one        One       @relation(fields: [oneId], references: [id]) // Foreign key relation
+  id           String    @id @default(cuid())
+  notes        String?
+  isComplete   Boolean   @default(false)
+  targetDate   DateTime?
+  lastModified DateTime  @default(now())
+  type         Int       @default(17) // Take out to Coffee
+  oneId        String
+  one          One       @relation(fields: [oneId], references: [id]) // Foreign key relation
 }
 
 model OneNote {
@@ -103,20 +104,23 @@ model BeaconActivity {
 }
 
 model StoryChapter {
-  id             String  @id @default(cuid())
-  storyId        String?
-  type           Int     @default(1)
-  title          String
-  content        String?
-  originalPrompt String?
-  questions      String // Comma Separated String of Strings
-  icon           String  @default("Book")
-  order          Int     @default(1)
-  tags           String? // Comma Separated String of Ints
-  names          String // Comma Separated String of Strings
-  quality        Int     @default(5)
-  userId         String
-  User           User    @relation(fields: [userId], references: [id])
+  id              String   @id @default(cuid())
+  storyId         String?
+  type            Int      @default(1)
+  title           String
+  content         String?
+  originalPrompt  String?
+  questions       String // Comma Separated String of Strings
+  icon            String   @default("Book")
+  order           Int      @default(1)
+  tags            String? // Comma Separated String of Ints
+  names           String // Comma Separated String of Strings
+  quality         Int      @default(5)
+  userId          String
+  lastModified    DateTime @default(now())
+  lastPartitioned DateTime @default(now())
+  extraTokenCount Int      @default(0)
+  User            User     @relation(fields: [userId], references: [id])
 }
 
 model User {
