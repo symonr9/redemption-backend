@@ -3,6 +3,7 @@ const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { OpenAI } = require("openai");
 const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { LogType } = require('../enums/enums');
 
 const router = express.Router();
 
@@ -68,14 +69,23 @@ router.post('/partition', authenticateJwt, async (req, res) => {
 
         res.status(200).json(json);
     } catch (error) {
-        console.error("Error with OpenAI request:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: error.message });
+        console.error(`Error with partition request: ${error}`);
+
+        let err = '';
+        if (error.response?.data && typeof error.response?.data === 'string') {
+            err = error.response.data;
+        } else if (error.response && typeof error.response === 'string') {
+            err = error.response;
+        } else if (error.message && typeof error.message === 'string') {
+            err = error.message;
+        }
+        res.status(500).json({ error: `Error: ${err}` });
     }
 });
 
 function isPartitionNotAllowed(user) {
     return user.lastPartitionDate !== undefined
-        && isWithinPast24Hours(lastPartitionDate)
+        && isWithinPast24Hours(user.lastPartitionDate)
         && user.extraPartitionCount === 0;
 }
 
