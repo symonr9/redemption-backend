@@ -118,6 +118,7 @@ model StoryChapter {
   quality        Int      @default(5)
   userId         String
   lastModified   DateTime @default(now())
+  created        DateTime @default(now())
   User           User     @relation(fields: [userId], references: [id])
 }
 

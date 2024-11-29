@@ -80,6 +80,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 quality: chapter.quality || 5,
                 originalPrompt: chapter.originalPrompt || null,
                 userId: user.id,
+                created: new Date()
             })),
         });
 
@@ -111,6 +112,7 @@ router.post('/update', authenticateJwt, async (req, res) => {
                 names: chapter.names ? chapter.names.join('∫') : '',
                 quality: chapter.quality || 5,
                 userId: user.id,
+                lastModified: new Date()
             },
         });
 

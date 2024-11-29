@@ -350,7 +350,8 @@ router.post('/actionSteps/update', authenticateJwt, async (req, res) => {
               notes: actionStep.notes ? actionStep.notes : null,
               isComplete: actionStep.isComplete,
               targetDate: actionStep.targetDate ? actionStep.targetDate : null,
-              type: actionStep.type
+              type: actionStep.type,
+              lastModified: new Date()
             }
           });
           idsToProcess.delete(actionStep.id);
