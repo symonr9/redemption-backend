@@ -1,0 +1,40 @@
+module.exports.isWithinNext24Hours = function(date) {
+    const now = new Date();
+    const future24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    return date && date > now && date <= future24Hours;
+}
+
+module.exports.isWithinPast24Hours = function(date) {
+    if (!date) {
+        return false;
+    }
+    const now = new Date();
+    const past24Hours = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+    return date && date <= now && date >= past24Hours;
+}
+
+module.exports.formatDateTime = function(date) {
+    if (!date) {
+        return '';
+    }
+
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const dayOfWeek = daysOfWeek[date.getDay()];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+
+    let hour = date.getHours();
+    const minute = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+
+    hour = hour % 12;
+    hour = hour ? hour : 12; // The hour '0' should be '12'
+
+    return `${dayOfWeek}, ${month} ${day}, ${year} at ${hour}:${minute} ${ampm}`;
+}

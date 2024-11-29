@@ -2,6 +2,7 @@ const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { OpenAI } = require("openai");
+const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ Your role is to partition Christian testimonies into sections based on prompt qu
 `;
 
 router.post('/partition', authenticateJwt, async (req, res) => {
+    const user = req.user;
     const { question, userResponse } = req.body;
     if (!question || !userResponse) {
         res.status(400).json({ error: "Invalid request" });
@@ -23,7 +25,12 @@ router.post('/partition', authenticateJwt, async (req, res) => {
     }
 
     try {
-        // TODO: Check if user has partitioned yet today.
+        if (isPartitionNotAllowed(user)) {
+            const newDate = new Date(user.lastPartitionDate);
+            newDate.setDate(newDate.getDate() + 1);
+            res.status(400).json({ error: `You have hit your testimony practice limit for today. Please check back on ${formatDateTime(newDate)}` });
+            return;
+        }
 
         // Create a chat completion with the system instructions and user input
         const completion = await client.chat.completions.create({
@@ -34,28 +41,58 @@ router.post('/partition', authenticateJwt, async (req, res) => {
             ],
         });
 
+        const json = getPartitionResponseAsJSON(completion);
+        if (!json) {
+            res.status(500).json({ error: "No valid JSON found in response." });
+            return;
+        }
+
         const { total_tokens } = completion.usage;
         console.log("Tokens used: ", total_tokens);
 
-        // Extract the assistant's response
-        const assistantResponse = completion.choices[0].message.content;
+        await prisma.log.create({
+            data: {
+                type: LogType.Partition,
+                userId: user.id,
+                details: `Tokens used: ${total_tokens}`
+            }
+        });
 
-        console.log("RESPONSE: ", assistantResponse);
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                lastPartitionDate: new Date(),
+                extraPartitionCount: user.extraPartitionCount > 0 ? user.extraPartitionCount - 1 : 0,
+            }
+        });
 
-        // Use a regex to extract the JSON portion
-        const jsonMatch = assistantResponse.match(/```json\n([\s\S]*?)\n```/);
-        if (jsonMatch && jsonMatch[1]) {
-            const jsonString = jsonMatch[1].trim();
-            const jsonResponse = JSON.parse(jsonString);
-            res.status(200).json(jsonResponse);
-        } else {
-            res.status(400).json({ error: "No valid JSON found in response." });
-        }
+        res.status(200).json(json);
     } catch (error) {
         console.error("Error with OpenAI request:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: error.message });
     }
 });
+
+function isPartitionNotAllowed(user) {
+    return user.lastPartitionDate !== undefined
+        && isWithinPast24Hours(lastPartitionDate)
+        && user.extraPartitionCount === 0;
+}
+
+function getPartitionResponseAsJSON(completion) {
+    const assistantResponse = completion.choices[0].message.content;
+    const jsonMatch = assistantResponse.match(/```json\n([\s\S]*?)\n```/);
+    if (!jsonMatch || !jsonMatch[1]) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(jsonMatch[1].trim());
+    } catch (e) {
+        console.error(e);
+        return null;
+    }
+}
 
 router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;

@@ -17,11 +17,12 @@ router.post("/create", async (req, res) => {
         const newUser = await prisma.user.create({
             data: {
                 name: 'Friend',
-                refreshToken: encryptedToken
+                refreshToken: encryptedToken,
+                lastRefreshDate: new Date()
             },
         });
 
-        const log = await prisma.log.create({
+        await prisma.log.create({
             data: {
                 type: LogType.UserCreated,
                 userId: newUser.id,
