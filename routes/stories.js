@@ -119,6 +119,14 @@ router.post('/unlockPractice', authenticateJwt, async (req, res) => {
             }
         }
 
+        await prisma.log.create({
+            data: {
+                type: LogType.UnlockPractice,
+                userId: user.id,
+                details: `Unlocked Practice, New Count: ${user.extraPartitionCount + 1}`
+            }
+        });
+
         await prisma.user.update({
             where: { id: user.id },
             data: {
