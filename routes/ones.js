@@ -81,7 +81,8 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
             notes: gospelStep.notes || null,
             nextSteps: gospelStep.nextSteps || null,
             rating: gospelStep.rating,
-            oneId: gospelStep.oneId
+            oneId: gospelStep.oneId,
+            date: new Date()
           }
         });
         return;

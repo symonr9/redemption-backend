@@ -73,6 +73,26 @@ app.use(async (req, res, next) => {
     next();
 });
 
+app.use((req, res, next) => {
+    const startTime = Date.now();
+
+    // Listen for when the response has been sent
+    res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        const logData = {
+            method: req.method,
+            route: req.originalUrl,
+            status: res.statusCode,
+            duration: `${duration}ms`,
+        };
+
+        // Log the response details
+        console.log(`[Post-Route]`, logData);
+    });
+
+    next();
+});
+
 // Use the combined routes
 app.use('/', routes);
 

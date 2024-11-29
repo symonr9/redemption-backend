@@ -104,6 +104,31 @@ function getPartitionResponseAsJSON(completion) {
     }
 }
 
+router.post('/unlockPractice', authenticateJwt, async (req, res) => {
+    const user = req.user;
+    try {
+        if (user.lastExtraPartitionGranted) {
+            const lastGranted = new Date(user.lastExtraPartitionGranted);
+            if (isWithinPast24Hours(lastGranted)) {
+                res.status(400).json({ error: 'You already unlocked an extra practice today.' });
+                return;
+            }
+        }
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                lastExtraPartitionGranted: new Date(),
+                extraPartitionCount: user.extraPartitionCount + 1,
+            }
+        });
+
+        res.status(200).json({ response: 'OK' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
 
