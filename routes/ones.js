@@ -76,7 +76,6 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
       if (!existingGospelStep) { // Create
         updatedGospelStep = await tx.gospelStep.create({
           data: {
-            date: gospelStep.date || null,
             type: gospelStep.type,
             layoutType: gospelStep.layoutType,
             notes: gospelStep.notes || null,
@@ -92,7 +91,7 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
             id: gospelStep.id,
           },
           data: {
-            date: gospelStep.date || null,
+            date: new Date(),
             layoutType: gospelStep.layoutType,
             notes: gospelStep.notes || null,
             nextSteps: gospelStep.nextSteps || null,
