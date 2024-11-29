@@ -1,6 +1,8 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
+const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { LogType } = require('../enums/enums');
 
 const router = express.Router();
 
@@ -18,6 +20,15 @@ router.post('/one/create', authenticateJwt, async (req, res) => {
         userId: user.id,
       }
     });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.CreateOne,
+        userId: user.id,
+        details: `[One ID: ${result.id}] [One Name: ${result.name}]`
+      }
+    });
+
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
@@ -39,6 +50,15 @@ router.post('/one/update', authenticateJwt, async (req, res) => {
         gospelChecklist: one.gospelChecklist ? one.gospelChecklist.join('∫') : null,
       }
     });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.UpdateOne,
+        userId: req.user.id,
+        details: `[One ID: ${result.id}] [One Name: ${result.name}]`
+      }
+    });
+
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
@@ -85,7 +105,14 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
             date: new Date()
           }
         });
-        return;
+
+        await prisma.log.create({
+          data: {
+            type: LogType.CreateGospelStep,
+            userId: req.user.id,
+            details: `[Step ID: ${updatedGospelStep.id}] [One ID: ${updatedGospelStep.oneId}] [Type: ${updatedGospelStep.type}]`
+          }
+        });
       } else { // Update
         updatedGospelStep = await tx.gospelStep.update({
           where: {
@@ -98,6 +125,14 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
             nextSteps: gospelStep.nextSteps || null,
             rating: gospelStep.rating,
             oneId: gospelStep.oneId
+          }
+        });
+
+        await prisma.log.create({
+          data: {
+            type: LogType.UpdateGospelStep,
+            userId: req.user.id,
+            details: `[Step ID: ${updatedGospelStep.id}] [One ID: ${updatedGospelStep.oneId}] [Type: ${updatedGospelStep.type}]`
           }
         });
       }
@@ -126,8 +161,16 @@ router.post('/gospelStep/delete', authenticateJwt, async (req, res) => {
       return;
     }
 
-    await prisma.gospelStep.delete({
+    const result = await prisma.gospelStep.delete({
       where: { id: gospelStep.id },
+    });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.DeleteGospelStep,
+        userId: req.user.id,
+        details: `[Step ID: ${result.id}] [One ID: ${result.oneId}] [Type: ${result.type}]`
+      }
     });
 
     res.status(200).end();
@@ -143,12 +186,20 @@ router.post('/oneNote/create', authenticateJwt, async (req, res) => {
     let newOneNote = null;
 
     await prisma.$transaction(async (tx) => {
-      newOneNote = await tx.oneNote.create({
+      const result = newOneNote = await tx.oneNote.create({
         data: {
           date: oneNote.date || null, // Defaults to now()
           type: oneNote.type,
           notes: oneNote.notes || "",
           oneId: oneNote.oneId
+        }
+      });
+
+      await prisma.log.create({
+        data: {
+          type: LogType.CreateOneNote,
+          userId: req.user.id,
+          details: `[Note ID: ${result.id}] [One ID: ${result.oneId}] [Notes: ${result.notes}]`
         }
       });
     });
@@ -189,6 +240,14 @@ router.post('/oneNote/update', authenticateJwt, async (req, res) => {
           oneId: oneNote.oneId
         }
       });
+
+      await prisma.log.create({
+        data: {
+          type: LogType.UpdateOneNote,
+          userId: req.user.id,
+          details: `[Note ID: ${updatedOneNote.id}] [One ID: ${updatedOneNote.oneId}] [Prev Notes: ${oneNote.notes || ""}] [New Notes: ${updatedOneNote.notes}]`
+        }
+      });
     });
 
     if (!updatedOneNote) {
@@ -216,6 +275,14 @@ router.post('/oneNote/delete', authenticateJwt, async (req, res) => {
 
     await prisma.oneNote.delete({
       where: { id: oneNote.id },
+    });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.DeleteOneNote,
+        userId: req.user.id,
+        details: `[Note ID: ${oneNote.id}] [One ID: ${oneNote.oneId}]`
+      }
     });
 
     res.status(200).end();
@@ -254,6 +321,15 @@ router.post('/christian/create', authenticateJwt, async (req, res) => {
       res.status(500).json({ error: 'Something went wrong' });
       return;
     }
+
+    await prisma.log.create({
+      data: {
+        type: LogType.CreateChristian,
+        userId: req.user.id,
+        details: `[ID: ${newChristian.id}] [One ID: ${newChristian.oneId}] [Christian Name: ${newChristian.name}]`
+      }
+    });
+
     res.status(200).json(newChristian);
   } catch (error) {
     console.error(error);
@@ -301,6 +377,15 @@ router.post('/christian/update', authenticateJwt, async (req, res) => {
       res.status(500).json({ error: 'Something went wrong' });
       return;
     }
+
+    await prisma.log.create({
+      data: {
+        type: LogType.UpdateChristian,
+        userId: req.user.id,
+        details: `[ID: ${updatedChristian.id}] [One ID: ${updatedChristian.oneId}] [Christian Name: ${updatedChristian.name}]`
+      }
+    });
+
     res.status(200).json(updatedChristian);
   } catch (error) {
     console.error(error);
@@ -322,6 +407,14 @@ router.post('/christian/delete', authenticateJwt, async (req, res) => {
 
     await prisma.christian.delete({
       where: { id: christian.id },
+    });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.DeleteChristian,
+        userId: req.user.id,
+        details: `[ID: ${christian.id}] [One ID: ${christian.oneId}] [Christian Name: ${christian.name}]`
+      }
     });
 
     res.status(200).end();
@@ -379,6 +472,14 @@ router.post('/actionSteps/update', authenticateJwt, async (req, res) => {
 
     const newActionSteps = await prisma.actionStep.findMany({
       where: { oneId }
+    });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.UpdateActionSteps,
+        userId: req.user.id,
+        details: `[New Action Steps: ${newActionSteps.length}]`
+      }
     });
 
     res.status(200).json(newActionSteps);

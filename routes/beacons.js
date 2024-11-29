@@ -1,6 +1,8 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
+const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { LogType } = require('../enums/enums');
 
 const router = express.Router();
 
@@ -24,6 +26,15 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 tags: beacon.tags ? beacon.tags.join('∫') : null,
             }
         });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.CreateBeacon,
+                userId: user.id,
+                details: `[ID: ${result.id}] [Name: ${result.name}]`
+            }
+        });
+
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -41,6 +52,15 @@ router.post('/deactivate', authenticateJwt, async (req, res) => {
                 activeUntil: null,
             }
         });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.DeactivateBeacon,
+                userId: req.user.id,
+                details: `[ID: ${result.id}] [Name: ${result.name}]`
+            }
+        });
+
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -58,6 +78,15 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                 beaconId: activity.beaconId
             }
         });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.CreateBeaconActivity,
+                userId: user.id,
+                details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
+            }
+        });
+
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -76,6 +105,15 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                 note: activity.note,
             }
         });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.UpdateBeaconActivity,
+                userId: user.id,
+                details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
+            }
+        });
+        
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });

@@ -4,7 +4,7 @@ var express = require("express");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-
+const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
 
 var router = express.Router();
@@ -53,14 +53,23 @@ router.post("/create", async (req, res) => {
 router.post("/user/update", async (req, res) => {
     try {
         const { user } = req.body;
-          const result = await prisma.user.update({
+        const result = await prisma.user.update({
             where: { id: req.user.id },
             data: {
-              name: user.name,
-              icon: user.icon,
+                name: user.name,
+                icon: user.icon,
             }
-          });
-          res.status(200).json(result);
+        });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.UpdateUser,
+                userId: req.user.id,
+                details: `[Name: ${result.name}] [Icon: ${result.icon}]`
+            }
+        });
+
+        res.status(200).json(result);
     } catch (error) {
         res.status(500).json({ error: 'Error updating user' });
         console.error(error);
@@ -104,7 +113,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
             ? await prisma.user.findUnique({
                 where: { id: req.user.id },
                 include: userIncludeOptions,
-              })
+            })
             : null;
 
         let activeBeacons = [];
@@ -191,6 +200,15 @@ router.post('/update/:id', authenticateJwt, async (req, res) => {
             where: { id: req.params.id },
             data: { name, email, role, description },
         });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.UpdateUser,
+                userId: user.id,
+                details: `[Name: ${user.name}] [Icon: ${user.icon}]`
+            }
+        });
+
         res.json(user);
     } catch (err) {
         res.status(500).json({ error: 'Failed to update user' });
@@ -201,9 +219,18 @@ router.post('/update/:id', authenticateJwt, async (req, res) => {
 // Delete a user
 router.post('/delete/:id', authenticateJwt, async (req, res) => {
     try {
-        await prisma.user.delete({
+        const result = await prisma.user.delete({
             where: { id: req.params.id },
         });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.DeleteUser,
+                userId: req.user.id,
+                details: `[Name: ${result.name}]`
+            }
+        });
+
         res.status(204).end();
     } catch (err) {
         res.status(500).json({ error: 'Failed to delete user' });

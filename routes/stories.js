@@ -123,7 +123,7 @@ router.post('/unlockPractice', authenticateJwt, async (req, res) => {
             data: {
                 type: LogType.UnlockPractice,
                 userId: user.id,
-                details: `Unlocked Practice, New Count: ${user.extraPartitionCount + 1}`
+                details: `[New Count: ${user.extraPartitionCount + 1}]`
             }
         });
 
@@ -168,6 +168,14 @@ router.post('/create', authenticateJwt, async (req, res) => {
             })),
         });
 
+        await prisma.log.create({
+            data: {
+                type: LogType.CreateChapter,
+                userId: user.id,
+                details: `Created ${createdChapters.length} chapter(s)`
+            }
+        });
+
         res.status(200).json({ response: 'OK' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -200,6 +208,14 @@ router.post('/update', authenticateJwt, async (req, res) => {
             },
         });
 
+        await prisma.log.create({
+            data: {
+                type: LogType.UpdateChapter,
+                userId: user.id,
+                details: `Updated chapter: [ID: ${updatedChapter.id}]`
+            }
+        });
+
         res.status(200).json({ response: 'OK' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -216,6 +232,14 @@ router.post('/delete', authenticateJwt, async (req, res) => {
             where: {
                 id: chapter.id,
             },
+        });
+
+        await prisma.log.create({
+            data: {
+                type: LogType.DeleteChapter,
+                userId: user.id,
+                details: `Deleted chapter: [ID: ${updatedChapter.id}]`
+            }
         });
 
         res.status(200).json({ response: 'OK' });
