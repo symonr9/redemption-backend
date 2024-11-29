@@ -10,10 +10,10 @@ router.post('/refresh', async (req, res) => {
   if (!refresh_token) {
     return res.status(400).json({ error: 'Missing refresh token' });
   }
-  
+
   const isValid = await bcrypt.compare(refresh_token, req.user.refreshToken);
   if (!isValid) {
-      return res.status(403).json({ error: 'Invalid refresh token' });
+    return res.status(403).json({ error: 'Invalid refresh token' });
   }
 
   // Generate a JWT
@@ -22,6 +22,14 @@ router.post('/refresh', async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
   );
+
+  await prisma.log.create({
+    data: {
+      type: LogType.RefreshTokens,
+      userId: req.user.id,
+      details: `Generated new access token`
+    }
+  });
 
   res.cookie('accessToken', newToken, {
     httpOnly: true,

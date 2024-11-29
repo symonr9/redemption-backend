@@ -238,7 +238,7 @@ router.post('/delete', authenticateJwt, async (req, res) => {
             data: {
                 type: LogType.DeleteChapter,
                 userId: user.id,
-                details: `Deleted chapter: [ID: ${updatedChapter.id}]`
+                details: `Deleted chapter: [ID: ${chapter.id}]`
             }
         });
 
