@@ -106,7 +106,7 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
           }
         });
 
-        await prisma.log.create({
+        await tx.log.create({
           data: {
             type: LogType.CreateGospelStep,
             userId: req.user.id,
@@ -128,7 +128,7 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
           }
         });
 
-        await prisma.log.create({
+        await tx.log.create({
           data: {
             type: LogType.UpdateGospelStep,
             userId: req.user.id,
@@ -195,7 +195,7 @@ router.post('/oneNote/create', authenticateJwt, async (req, res) => {
         }
       });
 
-      await prisma.log.create({
+      await tx.log.create({
         data: {
           type: LogType.CreateOneNote,
           userId: req.user.id,
@@ -241,7 +241,7 @@ router.post('/oneNote/update', authenticateJwt, async (req, res) => {
         }
       });
 
-      await prisma.log.create({
+      await tx.log.create({
         data: {
           type: LogType.UpdateOneNote,
           userId: req.user.id,
@@ -315,20 +315,20 @@ router.post('/christian/create', authenticateJwt, async (req, res) => {
           oneId: christian.oneId,
         },
       });
+
+      await tx.log.create({
+        data: {
+          type: LogType.CreateChristian,
+          userId: req.user.id,
+          details: `[ID: ${newChristian.id}] [One ID: ${newChristian.oneId}] [Christian Name: ${newChristian.name}]`
+        }
+      });
     });
 
     if (!newChristian) {
       res.status(500).json({ error: 'Something went wrong' });
       return;
     }
-
-    await prisma.log.create({
-      data: {
-        type: LogType.CreateChristian,
-        userId: req.user.id,
-        details: `[ID: ${newChristian.id}] [One ID: ${newChristian.oneId}] [Christian Name: ${newChristian.name}]`
-      }
-    });
 
     res.status(200).json(newChristian);
   } catch (error) {
@@ -371,20 +371,20 @@ router.post('/christian/update', authenticateJwt, async (req, res) => {
           oneId: christian.oneId,
         },
       });
+
+      await tx.log.create({
+        data: {
+          type: LogType.UpdateChristian,
+          userId: req.user.id,
+          details: `[ID: ${updatedChristian.id}] [One ID: ${updatedChristian.oneId}] [Christian Name: ${updatedChristian.name}]`
+        }
+      });
     });
 
     if (!updatedChristian) {
       res.status(500).json({ error: 'Something went wrong' });
       return;
     }
-
-    await prisma.log.create({
-      data: {
-        type: LogType.UpdateChristian,
-        userId: req.user.id,
-        details: `[ID: ${updatedChristian.id}] [One ID: ${updatedChristian.oneId}] [Christian Name: ${updatedChristian.name}]`
-      }
-    });
 
     res.status(200).json(updatedChristian);
   } catch (error) {

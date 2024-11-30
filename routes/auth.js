@@ -2,6 +2,8 @@ const express = require('express');
 const passport = require('../auth/google-oauth');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const prisma = require('../misc/prisma-client');
+const { LogType } = require('../enums/enums');
 
 const router = express.Router();
 

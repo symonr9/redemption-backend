@@ -24,8 +24,8 @@ const LogType = {
     CreateChristian: 23,
     UpdateChristian: 24,
     DeleteChristian: 25,
-    CreateActionStep: 26,
-    UpdateActionStep: 27
+    UpdateActionSteps: 26,
+    RefreshTokens: 27
 };
 
 module.exports = { LogType };
