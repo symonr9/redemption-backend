@@ -116,21 +116,8 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
             })
             : null;
 
-        let activeBeacons = [];
-        let expiredBeacons = [];
-
-        if (includeBeacons) {
-            const allBeacons = await getBeacons(req.user.id);
-            const currentDate = new Date();
-
-            allBeacons.forEach(beacon => {
-                if (beacon.activeUntil >= currentDate) {
-                    activeBeacons.push(beacon);
-                } else {
-                    expiredBeacons.push(beacon);
-                }
-            });
-        }
+        let activeBeacons = includeBeacons ? await getAllActiveBeacons() : [];
+        let expiredBeacons = includeBeacons ? await getExpiredBeacons(req.user.id) : [];
 
         const response = {
             ...(user && { user }),
@@ -151,29 +138,47 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
 });
 
 
-const getBeacons = async (userId) => {
-    const includeClause = {
-        activities: true,
-        user: {
-            select: {
-                name: true,
-                icon: true,
-            },
+const includeClause = {
+    activities: true,
+    user: {
+        select: {
+            name: true,
+            icon: true,
         },
-        one: {
-            select: {
-                name: true,
-                icon: true,
-                stage: true,
-            },
+    },
+    one: {
+        select: {
+            name: true,
+            icon: true,
+            stage: true,
         },
-    };
+    },
+};
 
+const getAllActiveBeacons = async () => {
+    const currentDate = new Date();
     const beacons = await prisma.beacon.findMany({
-        where: { userId },
+        where: { 
+            activeUntil: { gt: currentDate }, // Filter for active beacons
+        },
         include: includeClause,
     });
+    return mapBeaconWithAdditionalData(beacons);
+}
 
+const getExpiredBeacons = async (userId) => {
+    const currentDate = new Date();
+    const beacons = await prisma.beacon.findMany({
+        where: { 
+            userId,
+            activeUntil: { lt: currentDate }, // Filter for expired beacons
+        },
+        include: includeClause,
+    });
+    return mapBeaconWithAdditionalData(beacons);
+}
+
+const mapBeaconWithAdditionalData = (beacons) => {
     return beacons.map(beacon => ({
         ...beacon,
         user: {
