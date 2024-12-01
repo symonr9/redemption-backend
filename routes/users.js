@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
+const { MAX_LONG_TEXT_LENGTH, MAX_NORMAL_TEXT_LENGTH } = require('../constants/constants');
 
 var router = express.Router();
 

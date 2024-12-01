@@ -19,7 +19,7 @@ model One {
   gospelChecklist String? // Comma separated list of Ints
   hidden          Boolean      @default(false)
   userId          String
-  user            User         @relation(fields: [userId], references: [id]) // Foreign key relation
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   beacons         Beacon[]
   actionSteps     ActionStep[]
   oneNotes        OneNote[]
@@ -35,7 +35,7 @@ model ActionStep {
   lastModified DateTime  @default(now())
   type         Int       @default(17) // Take out to Coffee
   oneId        String
-  one          One       @relation(fields: [oneId], references: [id]) // Foreign key relation
+  one          One       @relation(fields: [oneId], references: [id], onDelete: Cascade)
 }
 
 model OneNote {
@@ -44,7 +44,7 @@ model OneNote {
   type  Int      @default(1)
   notes String
   oneId String
-  one   One      @relation(fields: [oneId], references: [id]) // Foreign key relation
+  one   One      @relation(fields: [oneId], references: [id], onDelete: Cascade)
 }
 
 model GospelStep {
@@ -56,7 +56,7 @@ model GospelStep {
   nextSteps  String?
   rating     Int      @default(0)
   oneId      String
-  one        One      @relation(fields: [oneId], references: [id]) // Foreign key relation
+  one        One      @relation(fields: [oneId], references: [id], onDelete: Cascade)
 }
 
 model Christian {
@@ -74,7 +74,7 @@ model Christian {
   timesPrayed      Int       @default(0)
   timesReachedOut  Int       @default(0)
   oneId            String
-  one              One       @relation(fields: [oneId], references: [id]) // Foreign key relation
+  one              One       @relation(fields: [oneId], references: [id], onDelete: Cascade)
 }
 
 model Beacon {
@@ -82,9 +82,9 @@ model Beacon {
   name         String
   message      String?
   userId       String
-  user         User             @relation(fields: [userId], references: [id]) // Foreign key relation
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   oneId        String
-  one          One?             @relation(fields: [oneId], references: [id])
+  one          One?             @relation(fields: [oneId], references: [id], onDelete: Cascade)
   priority     Int              @default(2) // Normal
   type         Int              @default(1) // Meeting
   activeUntil  DateTime?
@@ -98,9 +98,9 @@ model BeaconActivity {
   note     String?
   date     DateTime @default(now())
   userId   String
-  user     User     @relation(fields: [userId], references: [id]) // Foreign key relation
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   beaconId String
-  Beacon   Beacon   @relation(fields: [beaconId], references: [id]) // Foreign key relation
+  Beacon   Beacon   @relation(fields: [beaconId], references: [id], onDelete: Cascade)
 }
 
 model StoryChapter {
@@ -119,7 +119,7 @@ model StoryChapter {
   userId         String
   lastModified   DateTime @default(now())
   created        DateTime @default(now())
-  User           User     @relation(fields: [userId], references: [id])
+  User           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -146,6 +146,6 @@ model Log {
   type      Int      @default(1)
   createdAt DateTime @default(now())
   details   String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id]) // Foreign key relation
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

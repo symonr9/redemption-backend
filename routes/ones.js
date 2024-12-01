@@ -66,6 +66,37 @@ router.post('/one/update', authenticateJwt, async (req, res) => {
   }
 });
 
+router.post('/one/delete', authenticateJwt, async (req, res) => {
+  try {
+    const { one } = req.body;
+
+    const existingOne = await prisma.one.findFirst({
+      where: { id: one.id }
+    });
+    if (!existingOne) {
+      res.status(500).json({ error: `One does not exist` });
+      return;
+    }
+
+    const result = await prisma.one.delete({
+      where: { id: one.id },
+    });
+
+    await prisma.log.create({
+      data: {
+        type: LogType.DeleteOne,
+        userId: req.user.id,
+        details: `[One ID: ${one.id}] [Name: ${one.name}]`
+      }
+    });
+
+    res.status(200).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `An error occurred while processing your request: ${error.message}` });
+  }
+});
+
 router.post('/update/checklist', authenticateJwt, async (req, res) => {
   const { one } = req.body;
   try {
