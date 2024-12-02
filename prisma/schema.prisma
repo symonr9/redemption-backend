@@ -154,7 +154,7 @@ model User {
   refreshToken              String
   lastRefreshDate           DateTime               @default(now())
   lastPartitionDate         DateTime?
-  extraPartitionCount       Int                    @default(0)
+  extraPartitionCount       Int                    @default(5)
   lastExtraPartitionGranted DateTime?
   ones                      One[] // One-to-many relation with One
   beacons                   Beacon[]
