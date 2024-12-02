@@ -191,6 +191,7 @@ const mapBeaconWithAdditionalData = (beacons) => {
             name: beacon.one.name,
             icon: beacon.one.icon,
             stage: beacon.one.stage,
+            category: beacon.one.category
         },
         activities: beacon.activities.map(activity => ({
             ...activity,
