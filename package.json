@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc script.ts"
+    "start": "node app.js"
   },
   "engines": {
     "node": "20.12.2"
