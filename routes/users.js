@@ -152,6 +152,7 @@ const includeClause = {
             name: true,
             icon: true,
             stage: true,
+            category: true
         },
     },
 };
