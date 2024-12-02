@@ -25,7 +25,40 @@ const LogType = {
     UpdateChristian: 24,
     DeleteChristian: 25,
     UpdateActionSteps: 26,
-    RefreshTokens: 27
+    RefreshTokens: 27,
+    CreateGlobalBeacon: 28,
+    CreateGlobalBeaconActivity: 29,
+    UpdateGlobalBeaconActivity: 30,
 };
 
-module.exports = { LogType };
+// README: If you want to change, please also change enums.tsx in the gospel-initiative client project.
+const GlobalBeaconType = {
+    None: 0,
+    NewBelievers: 1,
+    BoldnessToShare: 2,
+    Missionaries: 3,
+    MissionsTrips: 4,
+    OurCity: 5,
+    Neighborhood: 6,
+    Schools: 7,
+    PoorHungry: 8,
+    Families: 9,
+    Parents: 10,
+    Marriages: 11,
+    Nation: 12,
+    Toddlers: 13,
+    ElementarySchoolers: 14,
+    MiddleSchoolers: 15,
+    HighSchoolers: 16,
+    Mosaic: 17,
+    YoungAdults: 18,
+    Elderly: 19,
+    Workplaces: 20,
+    Leaders: 21,
+    Discipleship: 22,
+    ChurchUnity: 23,
+    AddictionRecovery: 24,
+    LeadersInTraining: 25
+}
+
+module.exports = { LogType, GlobalBeaconType };

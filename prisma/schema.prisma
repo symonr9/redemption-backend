@@ -103,6 +103,28 @@ model BeaconActivity {
   Beacon   Beacon   @relation(fields: [beaconId], references: [id], onDelete: Cascade)
 }
 
+model GlobalBeaconActivity {
+  id           String       @id @default(cuid())
+  note         String?
+  date         DateTime     @default(now())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  beaconId     String
+  GlobalBeacon GlobalBeacon @relation(fields: [beaconId], references: [id], onDelete: Cascade)
+}
+
+model GlobalBeacon {
+  id          String                 @id @default(cuid())
+  name        String
+  message     String?
+  priority    Int                    @default(2) // Normal
+  type        Int                    @default(1) // New Believers
+  activeUntil DateTime?
+  tags        String? // Comma Separated String of Ints
+  shareOwnName Boolean          @default(true)
+  activities  GlobalBeaconActivity[]
+}
+
 model StoryChapter {
   id             String   @id @default(cuid())
   storyId        String?
@@ -123,20 +145,21 @@ model StoryChapter {
 }
 
 model User {
-  id                        String           @id @default(cuid())
+  id                        String                 @id @default(cuid())
   name                      String
   email                     String?
-  role                      Int              @default(2) // User
-  createdAt                 DateTime         @default(now())
-  icon                      String           @default("User")
+  role                      Int                    @default(2) // User
+  createdAt                 DateTime               @default(now())
+  icon                      String                 @default("User")
   refreshToken              String
-  lastRefreshDate           DateTime         @default(now())
+  lastRefreshDate           DateTime               @default(now())
   lastPartitionDate         DateTime?
-  extraPartitionCount       Int              @default(0)
+  extraPartitionCount       Int                    @default(0)
   lastExtraPartitionGranted DateTime?
   ones                      One[] // One-to-many relation with One
   beacons                   Beacon[]
   beaconActivities          BeaconActivity[]
+  globalBeaconActivities    GlobalBeaconActivity[]
   chapters                  StoryChapter[]
   log                       Log[]
 }
