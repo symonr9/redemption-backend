@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const routes = require('./routes'); // Automatically picks up the index.js file
 const session = require('express-session');
-const passport = require('./auth/google-oauth');
 const prisma = require('./misc/prisma-client')
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -35,10 +34,6 @@ app.use(rateLimit({
     max: 100, // Limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later',
 }));
-
-// Initialize Passport and restore authentication state, if any, from the session
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use(async (req, res, next) => {
     // White-listed
