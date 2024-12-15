@@ -1,3 +1,9 @@
+module.exports.getTomorrow = function() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+}
+
 module.exports.isWithinNext24Hours = function(date) {
     const now = new Date();
     const future24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);

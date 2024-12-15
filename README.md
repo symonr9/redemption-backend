@@ -14,3 +14,12 @@
 - After a build, startup the Prisma DB:
     - `npx prisma migrate dev --name init`
     - `npx prisma generate`
+
+
+## Heroku Postgres Steps
+
+- On Bash, command prompt
+   - `prisma db pull`
+   - `prisma generate`
+   - If changes are needed...
+       - `npx prisma migrate dev --name changes`

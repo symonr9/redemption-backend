@@ -4,9 +4,9 @@ var express = require("express");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { isWithinPast24Hours, formatDateTime, getTomorrow } = require('../utils/serverUtils');
 const { LogType, GlobalBeaconType } = require('../enums/enums');
-const { MAX_LONG_TEXT_LENGTH, MAX_NORMAL_TEXT_LENGTH } = require('../constants/constants');
+const { MAX_LONG_TEXT_LENGTH, MAX_NORMAL_TEXT_LENGTH, MAX_NUM_GLOBAL_BEACONS } = require('../constants/constants');
 
 var router = express.Router();
 
@@ -140,11 +140,11 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
     }
 });
 
-function getRandomGlobalBeaconTypeExcludingExisting(globalBeacons) {
+function getRandomGlobalBeaconTypeExcludingExisting(globalBeacons, newTypes) {
     const existingTypes = globalBeacons.map(beacon => beacon.type);
 
     const availableTypes = Object.values(GlobalBeaconType).filter(value => 
-        typeof value === 'number' && !existingTypes.includes(value)
+        typeof value === 'number' && !existingTypes.includes(value) && !newTypes.includes(value)
     );
 
     if (availableTypes.length === 0) {
@@ -158,40 +158,41 @@ function getRandomGlobalBeaconTypeExcludingExisting(globalBeacons) {
 
 const setupGlobalBeacons = async (user) => {
     try {
-        const currentDate = new Date();
         const globalBeacons = await prisma.globalBeacon.findMany({
             where: {
-                activeUntil: { gt: currentDate }, // Filter for active beacons
+                activeUntil: { gt: new Date() }, // Filter for active beacons
             },
         });
 
-        if (globalBeacons.length > 3) {
+        if (globalBeacons.length > MAX_NUM_GLOBAL_BEACONS) {
             return; // Enough global beacons!
         }
         
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrow = getTomorrow();
 
-        const newType = getRandomGlobalBeaconTypeExcludingExisting(globalBeacons);
+        const newTypes = [];
+        const numToCreate = MAX_NUM_GLOBAL_BEACONS - globalBeacons.length;
+        for (let i = 0; i < numToCreate; i++) {
+            const newType = getRandomGlobalBeaconTypeExcludingExisting(globalBeacons, newTypes);
+            newTypes.push(newType);
+            const result = await prisma.globalBeacon.create({
+                data: {
+                    name: "",
+                    message: null,
+                    type: newType,
+                    activeUntil: tomorrow,
+                }
+            });
 
-        const result = await prisma.globalBeacon.create({
-            data: {
-                name: "",
-                message: null,
-                type: newType,
-                activeUntil: tomorrow,
-            }
-        });
-
-        console.log("Created new global beacon of type: ", newType, "... active until: ", tomorrow.toDateString());
-
-        await prisma.log.create({
-            data: {
-                type: LogType.CreateGlobalBeacon,
-                userId: user.id,
-                details: `[ID: ${result.id}] [Name: ${result.name}] [Type: ${result.type}]`
-            }
-        });
+            console.log("Created new global beacon of type: ", newType, "... active until: ", tomorrow.toDateString());
+            await prisma.log.create({
+                data: {
+                    type: LogType.CreateGlobalBeacon,
+                    userId: user.id,
+                    details: `[ID: ${result.id}] [Name: ${result.name}] [Type: ${result.type}]`
+                }
+            });
+        }
     } catch (err) {
         console.error('Could not setup global beacons, something went wrong: ', err);
     }
