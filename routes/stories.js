@@ -161,7 +161,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
         let error = null;
         const data = chapterArray.map((chapter) => {
             const cleanTitle = cleanForProfanity(chapter.title);
-            if (!hasValidTextLength(cleanResponse, 1, MAX_NAME_LENGTH)) {
+            if (!hasValidTextLength(cleanTitle, 1, MAX_NAME_LENGTH)) {
                 error = `Title must be between 1 and ${MAX_NAME_LENGTH} characters.`;
                 return {};
             } 
