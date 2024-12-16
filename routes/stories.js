@@ -2,8 +2,9 @@ const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { OpenAI } = require("openai");
-const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
+const { MAX_NORMAL_TEXT_LENGTH, MAX_NAME_LENGTH, MAX_LONG_TEXT_LENGTH } = require('../constants/constants');
 
 const router = express.Router();
 
@@ -26,6 +27,13 @@ router.post('/partition', authenticateJwt, async (req, res) => {
     }
 
     try {
+        const cleanQuestion = cleanForProfanity(question);
+        const cleanResponse = cleanForProfanity(userResponse);
+        if (!hasValidTextLength(cleanResponse, 1, 1800)) {
+            res.status(400).json({ error: `Response must be between 1 and ${1800} characters.` });
+            return;
+        }
+
         if (isPartitionNotAllowed(user)) {
             const newDate = new Date(user.lastPartitionDate);
             newDate.setDate(newDate.getDate() + 1);
@@ -38,7 +46,7 @@ router.post('/partition', authenticateJwt, async (req, res) => {
             model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: systemInstructions },
-                { role: "user", content: `Prompt: ${question}\nResponse: ${userResponse}` }
+                { role: "user", content: `Prompt: ${cleanQuestion}\nResponse: ${cleanResponse}` }
             ],
         });
 
@@ -150,23 +158,43 @@ router.post('/create', authenticateJwt, async (req, res) => {
     }
 
     try {
-        const createdChapters = await prisma.storyChapter.createMany({
-            data: chapterArray.map((chapter) => ({
+        let error = null;
+        const data = chapterArray.map((chapter) => {
+            const cleanTitle = cleanForProfanity(chapter.title);
+            if (!hasValidTextLength(cleanResponse, 1, MAX_NAME_LENGTH)) {
+                error = `Title must be between 1 and ${MAX_NAME_LENGTH} characters.`;
+                return {};
+            } 
+
+            const cleanContent = cleanForProfanity(chapter.content);
+            if (!hasValidTextLength(cleanContent, 1, MAX_LONG_TEXT_LENGTH)) {
+                error = `Response must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.`;
+                return {};
+            }
+        
+            return {
                 storyId: chapter.storyId || null,
                 type: chapter.chapterType,
-                title: chapter.title,
-                content: chapter.content || null,
-                questions: chapter.questions ? chapter.questions.join('∫') : '',
+                title: cleanTitle,
+                content: cleanContent || null,
+                questions: chapter.questions ? cleanForProfanity(chapter.questions.join('∫')) : '',
                 icon: chapter.icon || 'Book',
                 order: chapter.order || 1,
                 tags: chapter.tags ? chapter.tags.join('∫') : null,
-                names: chapter.names ? chapter.names.join('∫') : '',
+                names: chapter.names ? cleanForProfanity(chapter.names.join('∫')) : '',
                 quality: chapter.quality || 5,
                 originalPrompt: chapter.originalPrompt || null,
                 userId: user.id,
                 created: new Date()
-            })),
+            };
         });
+
+        if (error !== null) {
+            res.status(400).json({ error });
+            return;
+        }
+
+        const createdChapters = await prisma.storyChapter.createMany({data});
 
         await prisma.log.create({
             data: {
@@ -188,24 +216,47 @@ router.post('/update', authenticateJwt, async (req, res) => {
     const { chapter } = req.body;
 
     try {
+        let error = null;
+        const data = chapterArray.map((chapter) => {
+            const cleanTitle = cleanForProfanity(chapter.title);
+            if (!hasValidTextLength(cleanResponse, 1, MAX_NAME_LENGTH)) {
+                error = `Title must be between 1 and ${MAX_NAME_LENGTH} characters.`;
+                return {};
+            } 
+
+            const cleanContent = cleanForProfanity(chapter.content);
+            if (!hasValidTextLength(cleanContent, 1, MAX_LONG_TEXT_LENGTH)) {
+                error = `Response must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.`;
+                return {};
+            }
+        
+            return {
+                storyId: chapter.storyId || null,
+                type: chapter.chapterType,
+                title: cleanTitle,
+                content: cleanContent || null,
+                questions: chapter.questions ? cleanForProfanity(chapter.questions.join('∫')) : '',
+                icon: chapter.icon || 'Book',
+                order: chapter.order || 1,
+                tags: chapter.tags ? chapter.tags.join('∫') : null,
+                names: chapter.names ? cleanForProfanity(chapter.names.join('∫')) : '',
+                quality: chapter.quality || 5,
+                originalPrompt: chapter.originalPrompt || null,
+                userId: user.id,
+                created: new Date()
+            };
+        });
+
+        if (error !== null) {
+            res.status(400).json({ error });
+            return;
+        }
+
         const updatedChapter = await prisma.storyChapter.update({
             where: {
                 id: chapter.id,
             },
-            data: {
-                storyId: chapter.storyId || null,
-                type: chapter.chapterType,
-                title: chapter.title,
-                content: chapter.content || null,
-                questions: chapter.questions ? chapter.questions.join('∫') : '',
-                icon: chapter.icon || 'Book',
-                order: chapter.order || 1,
-                tags: chapter.tags ? chapter.tags.join('∫') : null,
-                names: chapter.names ? chapter.names.join('∫') : '',
-                quality: chapter.quality || 5,
-                userId: user.id,
-                lastModified: new Date()
-            },
+            data
         });
 
         await prisma.log.create({

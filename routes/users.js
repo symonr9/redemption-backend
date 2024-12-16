@@ -4,9 +4,9 @@ var express = require("express");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { isWithinPast24Hours, formatDateTime, getTomorrow } = require('../utils/serverUtils');
+const { isWithinPast24Hours, formatDateTime, getTomorrow, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType, GlobalBeaconType } = require('../enums/enums');
-const { MAX_LONG_TEXT_LENGTH, MAX_NORMAL_TEXT_LENGTH, MAX_NUM_GLOBAL_BEACONS } = require('../constants/constants');
+const { MAX_NAME_LENGTH, MAX_NUM_GLOBAL_BEACONS } = require('../constants/constants');
 
 var router = express.Router();
 
@@ -54,10 +54,17 @@ router.post("/create", async (req, res) => {
 router.post("/user/update", async (req, res) => {
     try {
         const { user } = req.body;
+
+        const name = cleanForProfanity(user.name);
+        if (!hasValidTextLength(name, 1, MAX_NAME_LENGTH)) {
+            res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+            return;
+        }
+
         const result = await prisma.user.update({
             where: { id: req.user.id },
             data: {
-                name: user.name,
+                name: name,
                 icon: user.icon,
             }
         });
@@ -305,9 +312,16 @@ const mapGlobalBeaconWithAdditionalData = (beacons) => {
 router.post('/update/:id', authenticateJwt, async (req, res) => {
     try {
         const { name, email, role, description } = req.body;
+
+        const cleanName = cleanForProfanity(name);
+        if (!hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+            res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+            return;
+        }
+
         const user = await prisma.user.update({
             where: { id: req.params.id },
-            data: { name, email, role, description },
+            data: { name: cleanName, email, role, description },
         });
 
         await prisma.log.create({

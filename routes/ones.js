@@ -1,8 +1,9 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
-const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
+const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH, MAX_LONG_TEXT_LENGTH } = require('../constants/constants');
 
 const router = express.Router();
 
@@ -10,9 +11,15 @@ router.post('/one/create', authenticateJwt, async (req, res) => {
   const user = req.user;
   const { one } = req.body;
   try {
+    const cleanName = cleanForProfanity(one.name);
+    if (!hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+        res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+        return;
+    }
+
     const result = await prisma.one.create({
       data: {
-        name: one.name,
+        name: cleanName,
         icon: one.icon,
         stage: one.stage,
         category: one.category,
@@ -39,10 +46,16 @@ router.post('/one/create', authenticateJwt, async (req, res) => {
 router.post('/one/update', authenticateJwt, async (req, res) => {
   const { one } = req.body;
   try {
+    const cleanName = cleanForProfanity(one.name);
+    if (!hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+        res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+        return;
+    }
+
     const result = await prisma.one.update({
       where: { id: one.id },
       data: {
-        name: one.name,
+        name: cleanName,
         icon: one.icon,
         stage: one.stage,
         knownSince: one.knownSince,
@@ -119,6 +132,18 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
     const { gospelStep } = req.body;
     let updatedGospelStep = null;
 
+    const cleanNotes = gospelStep.notes ? cleanForProfanity(gospelStep.notes) : null;
+    if (cleanNotes && !hasValidTextLength(cleanNotes, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Note must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
+    const cleanNextSteps = gospelStep.nextSteps ? cleanForProfanity(gospelStep.nextSteps) : null;
+    if (cleanNextSteps && !hasValidTextLength(cleanNextSteps, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Next Steps must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
     await prisma.$transaction(async (tx) => {
       const existingGospelStep = await tx.gospelStep.findFirst({
         where: { id: gospelStep.id }
@@ -129,8 +154,8 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
           data: {
             type: gospelStep.type,
             layoutType: gospelStep.layoutType,
-            notes: gospelStep.notes || null,
-            nextSteps: gospelStep.nextSteps || null,
+            notes: cleanNotes,
+            nextSteps: cleanNextSteps,
             rating: gospelStep.rating,
             oneId: gospelStep.oneId,
             date: new Date()
@@ -152,8 +177,8 @@ router.post('/gospelStep/update', authenticateJwt, async (req, res) => {
           data: {
             date: new Date(),
             layoutType: gospelStep.layoutType,
-            notes: gospelStep.notes || null,
-            nextSteps: gospelStep.nextSteps || null,
+            notes: cleanNotes,
+            nextSteps: cleanNextSteps,
             rating: gospelStep.rating,
             oneId: gospelStep.oneId
           }
@@ -216,12 +241,18 @@ router.post('/oneNote/create', authenticateJwt, async (req, res) => {
     const { oneNote } = req.body;
     let newOneNote = null;
 
+    const cleanNotes = oneNote.notes ? cleanForProfanity(oneNote.notes) : "";
+    if (cleanNotes && !hasValidTextLength(cleanNotes, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Notes must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
     await prisma.$transaction(async (tx) => {
       const result = newOneNote = await tx.oneNote.create({
         data: {
           date: oneNote.date || null, // Defaults to now()
           type: oneNote.type,
-          notes: oneNote.notes || "",
+          notes: cleanNotes,
           oneId: oneNote.oneId
         }
       });
@@ -251,6 +282,12 @@ router.post('/oneNote/update', authenticateJwt, async (req, res) => {
     const { oneNote } = req.body;
     let updatedOneNote = null;
 
+    const cleanNotes = oneNote.notes ? cleanForProfanity(oneNote.notes) : "";
+    if (cleanNotes && !hasValidTextLength(cleanNotes, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Notes must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
     await prisma.$transaction(async (tx) => {
       const existingOneNote = await tx.oneNote.findFirst({
         where: { id: oneNote.id }
@@ -267,7 +304,7 @@ router.post('/oneNote/update', authenticateJwt, async (req, res) => {
         data: {
           date: oneNote.date || null, // Defaults to now()
           type: oneNote.type,
-          notes: oneNote.notes || "",
+          notes: cleanNotes,
           oneId: oneNote.oneId
         }
       });
@@ -328,17 +365,35 @@ router.post('/christian/create', authenticateJwt, async (req, res) => {
     const { christian } = req.body;
     let newChristian = null;
 
+    const cleanName = christian.name ? cleanForProfanity(christian.name) : "";
+    if (cleanName && !hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+        res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+        return;
+    }
+
+    const cleanNotes = christian.notes ? cleanForProfanity(christian.notes) : "";
+    if (cleanNotes && !hasValidTextLength(cleanNotes, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Notes must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
+    const cleanMutualInterests = christian.mutualInterests ? cleanForProfanity(christian.mutualInterests) : "";
+    if (cleanMutualInterests && !hasValidTextLength(cleanMutualInterests, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Mutual interests must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
     await prisma.$transaction(async (tx) => {
       newChristian = await tx.christian.create({
         data: {
-          name: christian.name,
+          name: cleanName,
           oneCategory: christian.oneCategory,
           category: christian.category,
           icon: christian.icon,
           oneKnownSince: christian.oneKnownSince,
           knownSince: christian.knownSince,
-          notes: christian.notes,
-          mutualInterests: christian.mutualInterests,
+          notes: cleanNotes,
+          mutualInterests: cleanMutualInterests,
           lastPrayedFor: christian.lastPrayedFor,
           lastReachedOutTo: christian.lastReachedOutTo,
           timesPrayed: christian.timesPrayed || 0, // Default to 0 if not provided
@@ -373,6 +428,24 @@ router.post('/christian/update', authenticateJwt, async (req, res) => {
     const { christian } = req.body;
     let updatedChristian = null;
 
+    const cleanName = christian.name ? cleanForProfanity(christian.name) : "";
+    if (cleanName && !hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+        res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+        return;
+    }
+
+    const cleanNotes = christian.notes ? cleanForProfanity(christian.notes) : "";
+    if (cleanNotes && !hasValidTextLength(cleanNotes, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Notes must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
+    const cleanMutualInterests = christian.mutualInterests ? cleanForProfanity(christian.mutualInterests) : "";
+    if (cleanMutualInterests && !hasValidTextLength(cleanMutualInterests, 1, MAX_LONG_TEXT_LENGTH)) {
+        res.status(400).json({ error: `Mutual interests must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+        return;
+    }
+
     await prisma.$transaction(async (tx) => {
       const existingChristian = await tx.christian.findFirst({
         where: { id: christian.id }
@@ -387,14 +460,14 @@ router.post('/christian/update', authenticateJwt, async (req, res) => {
           id: christian.id,
         },
         data: {
-          name: christian.name,
+          name: cleanName,
           oneCategory: christian.oneCategory,
           category: christian.category,
           icon: christian.icon,
           oneKnownSince: christian.oneKnownSince,
           knownSince: christian.knownSince,
-          notes: christian.notes,
-          mutualInterests: christian.mutualInterests,
+          notes: cleanNotes,
+          mutualInterests: cleanMutualInterests,
           lastPrayedFor: christian.lastPrayedFor,
           lastReachedOutTo: christian.lastReachedOutTo,
           timesPrayed: christian.timesPrayed || 0, // Default to 0 if not provided
@@ -467,11 +540,17 @@ router.post('/actionSteps/update', authenticateJwt, async (req, res) => {
       const idsToProcess = new Set(existingActionSteps.map(step => step.id));
 
       for (const actionStep of actionSteps) {
+        const cleanNotes = actionStep.notes ? cleanForProfanity(actionStep.notes) : null;
+        if (cleanNotes && !hasValidTextLength(cleanNotes, 1, MAX_LONG_TEXT_LENGTH)) {
+            res.status(400).json({ error: `Notes must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+            return;
+        }
+
         if (actionStep.id && idsToProcess.has(actionStep.id)) { // Update
           await tx.actionStep.update({
             where: { id: actionStep.id },
             data: {
-              notes: actionStep.notes ? actionStep.notes : null,
+              notes: cleanNotes,
               isComplete: actionStep.isComplete,
               targetDate: actionStep.targetDate ? actionStep.targetDate : null,
               type: actionStep.type,
@@ -483,7 +562,7 @@ router.post('/actionSteps/update', authenticateJwt, async (req, res) => {
         else {
           await tx.actionStep.create({
             data: {
-              notes: actionStep.notes ? actionStep.notes : null,
+              notes: cleanNotes,
               isComplete: actionStep.isComplete,
               targetDate: actionStep.targetDate ? actionStep.targetDate : null,
               type: actionStep.type,

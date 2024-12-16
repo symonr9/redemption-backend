@@ -1,8 +1,9 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
-const { isWithinPast24Hours, formatDateTime } = require('../utils/serverUtils');
+const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
+const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH } = require('../constants/constants');
 
 const router = express.Router();
 
@@ -33,10 +34,22 @@ router.post('/create', authenticateJwt, async (req, res) => {
     
             res.status(200).json(result);
         } else {
+            const cleanName = cleanForProfanity(beacon.name);
+            if (!hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+                res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+                return;
+            }
+
+            const cleanMessage = beacon.message ? cleanForProfanity(beacon.message) : null;
+            if (beacon.message && !hasValidTextLength(cleanMessage, 1, MAX_NORMAL_TEXT_LENGTH)) {
+                res.status(400).json({ error: `Message must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
+                return;
+            }
+        
             const result = await prisma.beacon.create({
                 data: {
-                    name: beacon.name,
-                    message: beacon.message ? beacon.message : null,
+                    name: cleanName,
+                    message: cleanMessage,
                     oneId: beacon.oneId,
                     priority: beacon.priority,
                     type: beacon.type,
@@ -92,10 +105,16 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
+        const cleanActivityNote = cleanForProfanity(activity.note);
+        if (!hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
+            res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
+            return;
+        }
+
         if (activity.global) {
             const result = await prisma.globalBeaconActivity.create({
                 data: {
-                    note: activity.note,
+                    note: cleanActivityNote,
                     userId: user.id,
                     beaconId: activity.beaconId
                 }
@@ -113,7 +132,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
         } else {
             const result = await prisma.beaconActivity.create({
                 data: {
-                    note: activity.note,
+                    note: cleanActivityNote,
                     userId: user.id,
                     beaconId: activity.beaconId
                 }
@@ -138,13 +157,19 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
+        const cleanActivityNote = cleanForProfanity(activity.note);
+        if (!hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
+            res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
+            return;
+        }
+
         if (activity.global) {
             const result = await prisma.globalBeaconActivity.update({
                 where: {
                     id: activity.id
                 },
                 data: {
-                    note: activity.note,
+                    note: cleanActivityNote,
                 }
             });
     
@@ -163,7 +188,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     id: activity.id
                 },
                 data: {
-                    note: activity.note,
+                    note: cleanActivityNote,
                 }
             });
     

@@ -1,3 +1,14 @@
+
+var filter = require('leo-profanity');
+
+module.exports.cleanForProfanity = function(text) {
+    return filter.clean(text);
+}
+
+module.exports.hasValidTextLength = function(text, min, max) {
+    return text && text.length > min && text.length < max;
+}
+
 module.exports.getTomorrow = function() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
