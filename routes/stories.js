@@ -161,8 +161,8 @@ router.post('/create', authenticateJwt, async (req, res) => {
         let error = null;
         const data = chapterArray.map((chapter) => {
             const cleanTitle = cleanForProfanity(chapter.title);
-            if (!hasValidTextLength(cleanTitle, 1, MAX_NAME_LENGTH)) {
-                error = `Title must be between 1 and ${MAX_NAME_LENGTH} characters.`;
+            if (!hasValidTextLength(cleanTitle, 1, MAX_NORMAL_TEXT_LENGTH)) {
+                error = `Title must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.`;
                 return {};
             } 
 
@@ -216,8 +216,8 @@ router.post('/update', authenticateJwt, async (req, res) => {
 
     try {
         const cleanTitle = cleanForProfanity(chapter.title);
-        if (!hasValidTextLength(cleanTitle, 1, MAX_NAME_LENGTH)) {
-            res.status(400).json({ error: `Title must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+        if (!hasValidTextLength(cleanTitle, 1, MAX_NORMAL_TEXT_LENGTH)) {
+            res.status(400).json({ error: `Title must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
             return;
         } 
 
