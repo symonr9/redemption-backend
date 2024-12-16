@@ -366,7 +366,7 @@ router.post('/christian/create', authenticateJwt, async (req, res) => {
     let newChristian = null;
 
     const cleanName = christian.name ? cleanForProfanity(christian.name) : "";
-    if (cleanName && !hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
+    if (!hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
         res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
         return;
     }

@@ -105,8 +105,8 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        const cleanActivityNote = cleanForProfanity(activity.note);
-        if (!hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
+        const cleanActivityNote = cleanForProfanity(activity.note) || '';
+        if (activity.note && !hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
             res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
             return;
         }
@@ -157,8 +157,8 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        const cleanActivityNote = cleanForProfanity(activity.note);
-        if (!hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
+        const cleanActivityNote = cleanForProfanity(activity.note) || '';
+        if (cleanActivityNote && !hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
             res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
             return;
         }

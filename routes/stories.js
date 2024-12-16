@@ -168,7 +168,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
 
             const cleanContent = cleanForProfanity(chapter.content);
             if (!hasValidTextLength(cleanContent, 1, MAX_LONG_TEXT_LENGTH)) {
-                error = `Response must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.`;
+                error = `Content must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.`;
                 return {};
             }
         
@@ -212,25 +212,26 @@ router.post('/create', authenticateJwt, async (req, res) => {
 
 router.post('/update', authenticateJwt, async (req, res) => {
     const user = req.user;
-
     const { chapter } = req.body;
 
     try {
-        let error = null;
-        const data = chapterArray.map((chapter) => {
-            const cleanTitle = cleanForProfanity(chapter.title);
-            if (!hasValidTextLength(cleanResponse, 1, MAX_NAME_LENGTH)) {
-                error = `Title must be between 1 and ${MAX_NAME_LENGTH} characters.`;
-                return {};
-            } 
+        const cleanTitle = cleanForProfanity(chapter.title);
+        if (!hasValidTextLength(cleanTitle, 1, MAX_NAME_LENGTH)) {
+            res.status(400).json({ error: `Title must be between 1 and ${MAX_NAME_LENGTH} characters.` });
+            return;
+        } 
 
-            const cleanContent = cleanForProfanity(chapter.content);
-            if (!hasValidTextLength(cleanContent, 1, MAX_LONG_TEXT_LENGTH)) {
-                error = `Response must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.`;
-                return {};
-            }
-        
-            return {
+        const cleanContent = cleanForProfanity(chapter.content);
+        if (!hasValidTextLength(cleanContent, 1, MAX_LONG_TEXT_LENGTH)) {
+            res.status(400).json({ error: `Response must be between 1 and ${MAX_LONG_TEXT_LENGTH} characters.` });
+            return;
+        }
+
+        const updatedChapter = await prisma.storyChapter.update({
+            where: {
+                id: chapter.id,
+            },
+            data: {
                 storyId: chapter.storyId || null,
                 type: chapter.chapterType,
                 title: cleanTitle,
@@ -244,19 +245,7 @@ router.post('/update', authenticateJwt, async (req, res) => {
                 originalPrompt: chapter.originalPrompt || null,
                 userId: user.id,
                 created: new Date()
-            };
-        });
-
-        if (error !== null) {
-            res.status(400).json({ error });
-            return;
-        }
-
-        const updatedChapter = await prisma.storyChapter.update({
-            where: {
-                id: chapter.id,
-            },
-            data
+            }
         });
 
         await prisma.log.create({
