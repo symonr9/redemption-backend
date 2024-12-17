@@ -2,7 +2,8 @@
 var filter = require('leo-profanity');
 
 module.exports.cleanForProfanity = function(text) {
-    return filter.clean(text);
+    const cleanText = filter.clean(text);
+    return cleanText ? cleanText.trim() : "";
 }
 
 module.exports.hasValidTextLength = function(text, min, max) {
