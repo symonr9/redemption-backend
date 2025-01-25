@@ -158,7 +158,7 @@ model User {
   enableAutoBeacons                 Boolean                @default(true)
   autoBeaconType                    Int                    @default(1)
   autoBeaconTags                    String? // Comma Separated String of Ints
-  hasAutoBeaconBeenCreatedThisCycle Boolean                @default(true)
+  hasAutoBeaconBeenCreatedThisCycle Boolean                @default(false)
   ones                              One[] // One-to-many relation with One
   beacons                           Beacon[]
   beaconActivities                  BeaconActivity[]
