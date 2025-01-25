@@ -3,3 +3,5 @@ module.exports.MAX_NORMAL_TEXT_LENGTH = 255;
 module.exports.MAX_NAME_LENGTH = 24;
 
 module.exports.MAX_NUM_GLOBAL_BEACONS = 5;
+
+module.exports.DAYS_ACTIVE_FOR_BEACONS = 8;

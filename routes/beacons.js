@@ -3,7 +3,7 @@ const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
-const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH } = require('../constants/constants');
+const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH, DAYS_ACTIVE_FOR_BEACONS } = require('../constants/constants');
 
 const router = express.Router();
 
@@ -11,8 +11,8 @@ router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { beacon } = req.body;
     try {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const activeUntil = new Date();
+        activeUntil.setDate(activeUntil.getDate() + DAYS_ACTIVE_FOR_BEACONS);
 
         if (beacon.global) {
             const result = await prisma.globalBeacon.create({
@@ -20,7 +20,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     name: "",
                     message: null,
                     type: beacon.type,
-                    activeUntil: tomorrow,
+                    activeUntil: activeUntil,
                 }
             });
     
@@ -53,7 +53,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     oneId: beacon.oneId,
                     priority: beacon.priority,
                     type: beacon.type,
-                    activeUntil: tomorrow,
+                    activeUntil: activeUntil,
                     shareOwnName: beacon.shareOwnName,
                     userId: user.id,
                     tags: beacon.tags ? beacon.tags.join('∫') : null,
