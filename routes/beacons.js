@@ -11,10 +11,10 @@ router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { beacon } = req.body;
     try {
-        const activeUntil = new Date();
-        activeUntil.setDate(activeUntil.getDate() + DAYS_ACTIVE_FOR_BEACONS);
-
         if (beacon.global) {
+            const activeUntil = new Date();
+            activeUntil.setDate(activeUntil.getDate() + 1);
+
             const result = await prisma.globalBeacon.create({
                 data: {
                     name: "",
@@ -34,6 +34,9 @@ router.post('/create', authenticateJwt, async (req, res) => {
     
             res.status(200).json(result);
         } else {
+            const activeUntil = new Date();
+            activeUntil.setDate(activeUntil.getDate() + DAYS_ACTIVE_FOR_BEACONS);
+
             const cleanName = cleanForProfanity(beacon.name);
             if (!hasValidTextLength(cleanName, 1, MAX_NAME_LENGTH)) {
                 res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
