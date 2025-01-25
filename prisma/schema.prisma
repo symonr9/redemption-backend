@@ -88,6 +88,7 @@ model Beacon {
   activeUntil  DateTime?
   tags         String? // Comma Separated String of Ints
   shareOwnName Boolean          @default(true)
+  isAutoBeacon Boolean          @default(false)
   activities   BeaconActivity[]
 }
 
@@ -112,15 +113,15 @@ model GlobalBeaconActivity {
 }
 
 model GlobalBeacon {
-  id          String                 @id @default(cuid())
-  name        String
-  message     String?
-  priority    Int                    @default(2) // Normal
-  type        Int                    @default(1) // New Believers
-  activeUntil DateTime?
-  tags        String? // Comma Separated String of Ints
-  shareOwnName Boolean          @default(true)
-  activities  GlobalBeaconActivity[]
+  id           String                 @id @default(cuid())
+  name         String
+  message      String?
+  priority     Int                    @default(2) // Normal
+  type         Int                    @default(1) // New Believers
+  activeUntil  DateTime?
+  tags         String? // Comma Separated String of Ints
+  shareOwnName Boolean                @default(true)
+  activities   GlobalBeaconActivity[]
 }
 
 model StoryChapter {
@@ -143,23 +144,27 @@ model StoryChapter {
 }
 
 model User {
-  id                        String                 @id @default(cuid())
-  name                      String
-  email                     String?
-  role                      Int                    @default(2) // User
-  createdAt                 DateTime               @default(now())
-  icon                      String                 @default("User")
-  refreshToken              String
-  lastRefreshDate           DateTime               @default(now())
-  lastPartitionDate         DateTime?
-  extraPartitionCount       Int                    @default(5)
-  lastExtraPartitionGranted DateTime?
-  ones                      One[] // One-to-many relation with One
-  beacons                   Beacon[]
-  beaconActivities          BeaconActivity[]
-  globalBeaconActivities    GlobalBeaconActivity[]
-  chapters                  StoryChapter[]
-  log                       Log[]
+  id                                String                 @id @default(cuid())
+  name                              String
+  email                             String?
+  role                              Int                    @default(2) // User
+  createdAt                         DateTime               @default(now())
+  icon                              String                 @default("User")
+  refreshToken                      String
+  lastRefreshDate                   DateTime               @default(now())
+  lastPartitionDate                 DateTime?
+  extraPartitionCount               Int                    @default(5)
+  lastExtraPartitionGranted         DateTime?
+  enableAutoBeacons                 Boolean                @default(true)
+  autoBeaconType                    Int                    @default(1)
+  autoBeaconTags                    String? // Comma Separated String of Ints
+  hasAutoBeaconBeenCreatedThisCycle Boolean                @default(true)
+  ones                              One[] // One-to-many relation with One
+  beacons                           Beacon[]
+  beaconActivities                  BeaconActivity[]
+  globalBeaconActivities            GlobalBeaconActivity[]
+  chapters                          StoryChapter[]
+  log                               Log[]
 }
 
 model Log {
