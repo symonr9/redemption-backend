@@ -21,6 +21,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     message: null,
                     type: beacon.type,
                     activeUntil: activeUntil,
+                    isAutoBeacon: false,
                 }
             });
     

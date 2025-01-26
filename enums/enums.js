@@ -29,6 +29,7 @@ const LogType = {
     CreateGlobalBeacon: 28,
     CreateGlobalBeaconActivity: 29,
     UpdateGlobalBeaconActivity: 30,
+    CreateAutoBeacon: 31,
 };
 
 // README: If you want to change, please also change enums.tsx in the gospel-initiative client project.
@@ -61,4 +62,9 @@ const GlobalBeaconType = {
     LeadersInTraining: 25
 }
 
-module.exports = { LogType, GlobalBeaconType };
+const AutoBeaconType = {
+    BlessRelationships: 1,
+    OpportunitiesToShareGospel: 2,
+}
+
+module.exports = { LogType, GlobalBeaconType, AutoBeaconType };

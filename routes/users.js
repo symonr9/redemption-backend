@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { isWithinPast24Hours, formatDateTime, getTomorrow, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType, GlobalBeaconType } = require('../enums/enums');
-const { MAX_NAME_LENGTH, MAX_NUM_GLOBAL_BEACONS } = require('../constants/constants');
+const { MAX_NAME_LENGTH, MAX_NUM_GLOBAL_BEACONS, MAX_NUM_AUTO_BEACONS } = require('../constants/constants');
 
 var router = express.Router();
 
@@ -66,6 +66,9 @@ router.post("/user/update", async (req, res) => {
             data: {
                 name: name,
                 icon: user.icon,
+                enableAutoBeacons: user.enableAutoBeacons,
+                autoBeaconType: user.autoBeaconType,
+                autoBeaconTags: user.autoBeaconTags ? user.autoBeaconTags.join('∫') : null,
             }
         });
 
@@ -73,7 +76,12 @@ router.post("/user/update", async (req, res) => {
             data: {
                 type: LogType.UpdateUser,
                 userId: req.user.id,
-                details: `[Name: ${result.name}] [Icon: ${result.icon}]`
+                details: `[Name: ${result.name}] 
+                    [Icon: ${result.icon}] 
+                    [Enable Auto Beacons: ${result.enableAutoBeacons}]
+                    [Auto beacon Type: ${result.autoBeaconType}]
+                    [Auto beacon Tags: ${result.autoBeaconTags}]
+                `
             }
         });
 
@@ -125,6 +133,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
             : null;
 
         await setupGlobalBeacons(req.user);
+        await setupAutoBeacons(req.user);
 
         let activeBeacons = includeBeacons ? await getAllActiveBeacons() : [];
         let expiredBeacons = includeBeacons ? await getExpiredBeacons(req.user.id) : [];
@@ -150,7 +159,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
 function getRandomGlobalBeaconTypeExcludingExisting(globalBeacons, newTypes) {
     const existingTypes = globalBeacons.map(beacon => beacon.type);
 
-    const availableTypes = Object.values(GlobalBeaconType).filter(value => 
+    const availableTypes = Object.values(GlobalBeaconType).filter(value =>
         typeof value === 'number' && !existingTypes.includes(value) && !newTypes.includes(value)
     );
 
@@ -168,13 +177,14 @@ const setupGlobalBeacons = async (user) => {
         const globalBeacons = await prisma.globalBeacon.findMany({
             where: {
                 activeUntil: { gt: new Date() }, // Filter for active beacons
+                isAutoBeacon: false,
             },
         });
 
         if (globalBeacons.length > MAX_NUM_GLOBAL_BEACONS) {
             return; // Enough global beacons!
         }
-        
+
         const tomorrow = getTomorrow();
 
         const newTypes = [];
@@ -188,6 +198,7 @@ const setupGlobalBeacons = async (user) => {
                     message: null,
                     type: newType,
                     activeUntil: tomorrow,
+                    isAutoBeacon: false,
                 }
             });
 
@@ -204,6 +215,90 @@ const setupGlobalBeacons = async (user) => {
         console.error('Could not setup global beacons, something went wrong: ', err);
     }
 };
+
+const setupAutoBeacons = async (user) => {
+    try {
+        const autoBeacons = await prisma.globalBeacon.findMany({
+            where: {
+                activeUntil: { gt: new Date() }, // Filter for active beacons
+                isAutoBeacon: true,
+            },
+        });
+
+        if (autoBeacons.length > MAX_NUM_AUTO_BEACONS) {
+            return; // Enough auto beacons!
+        }
+
+        const numToCreate = MAX_NUM_AUTO_BEACONS - autoBeacons.length;
+
+        let enabledUsers = await prisma.user.findMany({
+            where: {
+                enableAutoBeacons: true,
+                hasAutoBeaconBeenCreatedThisCycle: false,
+            },
+            take: numToCreate
+        });
+
+        if (enabledUsers.length === 0) {
+            await prisma.user.updateMany({
+                where: {
+                    enableAutoBeacons: true,
+                },
+                data: {
+                    hasAutoBeaconBeenCreatedThisCycle: false
+                }
+            });
+
+            enabledUsers = await prisma.user.findMany({
+                where: {
+                    enableAutoBeacons: true,
+                    hasAutoBeaconBeenCreatedThisCycle: false,
+                },
+                take: numToCreate
+            });
+        }
+
+        const activeUntil = new Date();
+        activeUntil.setDate(activeUntil.getDate() + 1);
+
+        for (const enabledUser of enabledUsers) {
+            const type = enabledUser.autoBeaconType;
+            const tags = enabledUser.autoBeaconTags;
+
+            const result = await prisma.globalBeacon.create({
+                data: {
+                    name: "",
+                    message: null,
+                    type: type,
+                    activeUntil: activeUntil,
+                    tags: tags || null,
+                    isAutoBeacon: true,
+                    userId: enabledUser.id,
+                }
+            });
+
+            console.log("Created new auto beacon... active until: ", activeUntil.toDateString());
+            await prisma.log.create({
+                data: {
+                    type: LogType.CreateAutoBeacon,
+                    userId: user.id,
+                    details: `[ID: ${result.id}] [Name: ${result.name}] [Type: ${result.type}]`
+                }
+            });
+
+            await prisma.user.update({
+                where: {
+                    id: enabledUser.id
+                },
+                data: {
+                    hasAutoBeaconBeenCreatedThisCycle: true,
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Could not setup auto beacons, something went wrong: ', err);
+    }
+}
 
 const getAllActiveBeacons = async () => {
     const currentDate = new Date();
@@ -227,6 +322,12 @@ const getAllActiveBeacons = async () => {
                             name: true,
                         },
                     },
+                },
+            },
+            user: {
+                select: {
+                    name: true,
+                    icon: true,
                 },
             },
         },
