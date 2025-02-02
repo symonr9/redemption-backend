@@ -21,5 +21,6 @@
 - On Bash, command prompt
    - `prisma db pull`
    - `prisma generate`
+   - `npx prisma db push`
    - If changes are needed...
        - `npx prisma migrate dev --name changes`
