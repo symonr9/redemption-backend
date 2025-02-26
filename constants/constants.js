@@ -6,4 +6,4 @@ module.exports.MAX_NUM_GLOBAL_BEACONS = 5;
 module.exports.MAX_NUM_AUTO_BEACONS = 5;
 
 // Normal beacons
-module.exports.DAYS_ACTIVE_FOR_BEACONS = 8;
+module.exports.DAYS_ACTIVE_FOR_BEACONS = 1;
