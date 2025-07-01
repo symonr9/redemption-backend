@@ -6,6 +6,8 @@ const prisma = require('./misc/prisma-client')
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
+require('./jobs/scheduleNotifications');
+
 const PORT = process.env.PORT || 3000;
 
 const app = express();

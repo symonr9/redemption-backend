@@ -2,6 +2,7 @@ const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
+const { sendBeaconNotification } = require('../utils/notifyUtils');
 const { LogType } = require('../enums/enums');
 const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH, DAYS_ACTIVE_FOR_BEACONS } = require('../constants/constants');
 
@@ -24,7 +25,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     isAutoBeacon: false,
                 }
             });
-    
+
             await prisma.log.create({
                 data: {
                     type: LogType.CreateGlobalBeacon,
@@ -32,7 +33,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Name: ${result.name}] [Type: ${result.type}]`
                 }
             });
-    
+
             res.status(200).json(result);
         } else {
             const activeUntil = new Date();
@@ -49,7 +50,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 res.status(400).json({ error: `Message must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
                 return;
             }
-        
+
             const result = await prisma.beacon.create({
                 data: {
                     name: cleanName,
@@ -63,7 +64,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     tags: beacon.tags ? beacon.tags.join('∫') : null,
                 }
             });
-    
+
             await prisma.log.create({
                 data: {
                     type: LogType.CreateBeacon,
@@ -71,7 +72,9 @@ router.post('/create', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Name: ${result.name}]`
                 }
             });
-    
+
+            await sendBeaconNotification(result);
+
             res.status(200).json(result);
         }
     } catch (error) {
@@ -123,7 +126,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                     beaconId: activity.beaconId
                 }
             });
-    
+
             await prisma.log.create({
                 data: {
                     type: LogType.CreateGlobalBeaconActivity,
@@ -131,7 +134,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
                 }
             });
-    
+
             res.status(200).json(result);
         } else {
             const result = await prisma.beaconActivity.create({
@@ -141,7 +144,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                     beaconId: activity.beaconId
                 }
             });
-    
+
             await prisma.log.create({
                 data: {
                     type: LogType.CreateBeaconActivity,
@@ -149,7 +152,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
                 }
             });
-    
+
             res.status(200).json(result);
         }
     } catch (error) {
@@ -176,7 +179,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     note: cleanActivityNote,
                 }
             });
-    
+
             await prisma.log.create({
                 data: {
                     type: LogType.UpdateGlobalBeaconActivity,
@@ -184,7 +187,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
                 }
             });
-            
+
             res.status(200).json(result);
         } else {
             const result = await prisma.beaconActivity.update({
@@ -195,7 +198,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     note: cleanActivityNote,
                 }
             });
-    
+
             await prisma.log.create({
                 data: {
                     type: LogType.UpdateBeaconActivity,
@@ -203,7 +206,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
                 }
             });
-            
+
             res.status(200).json(result);
         }
     } catch (error) {

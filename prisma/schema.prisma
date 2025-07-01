@@ -122,7 +122,7 @@ model GlobalBeacon {
   shareOwnName Boolean                @default(true)
   isAutoBeacon Boolean                @default(false)
   userId       String?
-  user         User?                   @relation(fields: [userId], references: [id])
+  user         User?                  @relation(fields: [userId], references: [id])
   activities   GlobalBeaconActivity[]
 }
 
@@ -158,6 +158,11 @@ model User {
   extraPartitionCount               Int                    @default(5)
   lastExtraPartitionGranted         DateTime?
   enableAutoBeacons                 Boolean                @default(true)
+  expoPushToken                     String?
+  notifyOnEveryBeacon               Boolean                @default(false) // Send per-beacon notifications
+  notifyMorningAndEveningOnly       Boolean                @default(true)
+  preferredNotificationTimes        String? // e.g., "08:00,20:00"
+  lastNotificationSent              DateTime?
   autoBeaconType                    Int                    @default(1)
   autoBeaconTags                    String? // Comma Separated String of Ints
   hasAutoBeaconBeenCreatedThisCycle Boolean                @default(false)

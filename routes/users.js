@@ -461,4 +461,26 @@ router.post('/delete/:id', authenticateJwt, async (req, res) => {
     }
 });
 
+router.post('/push-token', async (req, res) => {
+    const { expoPushToken } = req.body;
+    const user = req.user;
+
+    if (!expoPushToken) {
+        return res.status(400).json({ error: 'expoPushToken is required' });
+    }
+
+    try {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { expoPushToken },
+        });
+
+        return res.status(200).json({ message: 'Push token saved successfully' });
+    } catch (err) {
+        console.error('Failed to save token:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 module.exports = router;
