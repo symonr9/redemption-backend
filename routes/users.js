@@ -140,6 +140,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
 
         const response = {
             ...(user && { user }),
+            isSetupForNotifications: user?.expoPushToken !== null,
             ...(includeOnes && user?.ones && { ones: user.ones }),
             ...(includeStories && user?.chapters && { chapters: user.chapters }),
             ...(includeBeacons && { activeBeacons, expiredBeacons })
