@@ -159,7 +159,7 @@ model User {
   lastExtraPartitionGranted         DateTime?
   enableAutoBeacons                 Boolean                @default(true)
   expoPushToken                     String?
-  notifyOnEveryBeacon               Boolean                @default(false) // Send per-beacon notifications
+  notifyOnEveryBeacon               Boolean                @default(true)
   notifyMorningAndEveningOnly       Boolean                @default(true)
   preferredNotificationTimes        String? // e.g., "08:00,20:00"
   lastNotificationSent              DateTime?
