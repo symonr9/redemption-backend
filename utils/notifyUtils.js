@@ -7,27 +7,30 @@ const expo = new Expo({
   useFcmV1: true,
 });
 
-module.exports.sendBeaconNotification = async function (beacon) {
+module.exports.sendBeaconNotification = async function (beacon, user) {
   const users = await prisma.user.findMany({
     where: {
       expoPushToken: { not: null },
       notifyOnEveryBeacon: true,
-      notifyMorningAndEveningOnly: false,
-      id: { not: beacon.userId }, // Don't send to the creator
+      // TODO: For production, filter out the creator...
+      // id: { not: beacon.userId }, // Don't send to the creator
     },
   });
+
+  const body = getBeaconNotificationMessage(beacon, user);
 
   const messages = users
     .filter(user => Expo.isExpoPushToken(user.expoPushToken))
     .map(user => ({
       to: user.expoPushToken,
       sound: 'default',
-      body: `New Beacon: ${beacon.name}`,
+      body,
       data: { beaconId: beacon.id },
-      _userId: user.id, // for later updating `lastNotificationSent`
+      _userId: user.id,
     }));
 
-  if (messages.length === 0) return;
+  if (messages.length === 0) 
+    return;
 
   const chunks = expo.chunkPushNotifications(messages);
 
@@ -46,12 +49,18 @@ module.exports.sendBeaconNotification = async function (beacon) {
             data: { lastNotificationSent: new Date() },
           });
         } else {
-          console.warn(`Failed for user ${msg._userId}:`, receipt.message || receipt.details?.error);
+          console.error(`Failed for user ${msg._userId}:`, receipt.message || receipt.details?.error);
         }
       }
-
     } catch (err) {
       console.error('Error sending push batch:', err);
     }
   }
 };
+
+function getBeaconNotificationMessage(beacon, user) {
+    if (beacon.shareOwnName)
+      return `${user.name} sent out a beacon. Let's pray!`;
+
+    return `Someone sent out a beacon. Let's pray!`;
+}

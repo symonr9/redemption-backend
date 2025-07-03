@@ -1,7 +1,7 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
-const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
+const { cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { sendBeaconNotification } = require('../utils/notifyUtils');
 const { LogType } = require('../enums/enums');
 const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH, DAYS_ACTIVE_FOR_BEACONS } = require('../constants/constants');
@@ -73,7 +73,7 @@ router.post('/create', authenticateJwt, async (req, res) => {
                 }
             });
 
-            await sendBeaconNotification(result);
+            await sendBeaconNotification(result, user);
 
             res.status(200).json(result);
         }

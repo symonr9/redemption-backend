@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const { PrismaClient } = require('@prisma/client');
 const { Expo } = require('expo-server-sdk');
+const { getAllActiveBeacons } = require('../utils/beaconUtils');
 
 const prisma = new PrismaClient();
 
@@ -9,12 +10,7 @@ const expo = new Expo({
   useFcmV1: true,
 });
 
-function timeMatches(now, target) {
-  const [targetHour, targetMinute] = target.split(':').map(Number);
-  return now.getHours() === targetHour && now.getMinutes() === targetMinute;
-}
-
-async function sendScheduledNotifications() {
+async function sendMorningEveningNotifications(isMorning) {
   const now = new Date();
 
   const users = await prisma.user.findMany({
@@ -26,29 +22,15 @@ async function sendScheduledNotifications() {
 
   const messages = [];
 
+  const activeBeacons = await getAllActiveBeacons();
+  if (activeBeacons.length === 0)
+    return;
+
   for (const user of users) {
-    if (!user.preferredNotificationTimes) continue;
-
-    const preferredTimes = user.preferredNotificationTimes.split(',');
-    const shouldNotify = preferredTimes.some(t => timeMatches(now, t));
-
-    if (!shouldNotify) continue;
-
-    const newBeacons = await prisma.beacon.findMany({
-      where: {
-        userId: user.id,
-        createdAt: {
-          gt: user.lastNotificationSent ?? new Date(0),
-        },
-      },
-    });
-
-    if (newBeacons.length === 0) continue;
-
-    const body = `You have ${newBeacons.length} new beacons to check`;
+    const body = `${isMorning ? 'Good morning!' : 'Good evening!'} There are ${activeBeacons.length} active beacons to pray for.`;
 
     if (!Expo.isExpoPushToken(user.expoPushToken)) {
-      console.warn(`Invalid Expo token for user ${user.id}`);
+      console.error(`Invalid Expo token for user ${user.id}`);
       continue;
     }
 
@@ -56,12 +38,13 @@ async function sendScheduledNotifications() {
       to: user.expoPushToken,
       sound: 'default',
       body,
-      data: { count: newBeacons.length },
+      data: { count: activeBeacons.length },
       _userId: user.id, // include so we can update lastNotificationSent after
     });
   }
 
-  if (messages.length === 0) return;
+  if (messages.length === 0) 
+    return;
 
   const chunks = expo.chunkPushNotifications(messages);
 
@@ -91,13 +74,22 @@ async function sendScheduledNotifications() {
   console.log(`✅ Sent ${messages.length} notifications`);
 }
 
-
-// Schedule: run every minute
-cron.schedule('* * * * *', async () => {
-  console.log(`[Cron] Running notification check at ${new Date().toISOString()}`);
+// Runs every day at 10:00 AM
+cron.schedule('0 10 * * *', async () => {
+  console.log(`[Cron] 🔔 10AM Notification Run: ${new Date().toISOString()}`);
   try {
-    await sendScheduledNotifications();
+    await sendMorningEveningNotifications(true);
   } catch (err) {
-    console.error('Error in scheduled notification job:', err);
+    console.error('Error during 10AM notification run:', err);
+  }
+});
+
+// Runs every day at 7:00 PM
+cron.schedule('0 19 * * *', async () => {
+  console.log(`[Cron] 🔔 7PM Notification Run: ${new Date().toISOString()}`);
+  try {
+    await sendMorningEveningNotifications(false);
+  } catch (err) {
+    console.error('Error during 7PM notification run:', err);
   }
 });
