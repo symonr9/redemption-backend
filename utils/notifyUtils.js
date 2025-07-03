@@ -41,15 +41,28 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
       // Optionally update lastNotificationSent for success cases
       for (let i = 0; i < chunk.length; i++) {
         const receipt = receipts[i];
-        const msg = chunk[i];
+        const message = chunk[i];
 
         if (receipt.status === 'ok') {
           await prisma.user.update({
-            where: { id: msg._userId },
+            where: { id: message._userId },
             data: { lastNotificationSent: new Date() },
           });
+        } else if (receipt.status === 'error') {
+          const err = receipt.details?.error;
+
+          console.error(`❌ Push failed for user ${message._userId}:`, err);
+
+          if (err === 'DeviceNotRegistered') {
+            await prisma.user.update({
+              where: { id: message._userId },
+              data: { expoPushToken: null },
+            });
+
+            console.log(`🧹 Cleared invalid Expo token for user ${message._userId}`);
+          }
         } else {
-          console.error(`Failed for user ${msg._userId}:`, receipt.message || receipt.details?.error);
+          console.error(`Failed for user ${message._userId}:`, receipt.message || receipt.details?.error);
         }
       }
     } catch (err) {

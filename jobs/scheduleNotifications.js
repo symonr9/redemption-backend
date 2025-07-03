@@ -43,7 +43,7 @@ async function sendMorningEveningNotifications(isMorning) {
     });
   }
 
-  if (messages.length === 0) 
+  if (messages.length === 0)
     return;
 
   const chunks = expo.chunkPushNotifications(messages);
@@ -62,8 +62,21 @@ async function sendMorningEveningNotifications(isMorning) {
             where: { id: message._userId },
             data: { lastNotificationSent: now },
           });
+        } else if (receipt.status === 'error') {
+          const err = receipt.details?.error;
+
+          console.error(`❌ Push failed for user ${message._userId}:`, err);
+
+          if (err === 'DeviceNotRegistered') {
+            await prisma.user.update({
+              where: { id: message._userId },
+              data: { expoPushToken: null },
+            });
+
+            console.log(`🧹 Cleared invalid Expo token for user ${message._userId}`);
+          }
         } else {
-          console.warn(`❌ Push failed for user ${message._userId}:`, receipt.message || receipt.details?.error);
+          console.error(`❌ Push failed for user ${message._userId}:`, receipt.message || receipt.details?.error);
         }
       }
     } catch (err) {
