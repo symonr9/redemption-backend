@@ -8,6 +8,8 @@ const expo = new Expo({
 });
 
 module.exports.sendBeaconNotification = async function (beacon, user) {
+  console.log(`Sending beacon notification for beacon ID: ${beacon.id}, user name: ${user.name}`);
+
   const users = await prisma.user.findMany({
     where: {
       expoPushToken: { not: null },
@@ -29,6 +31,8 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
       _userId: user.id,
     }));
 
+  console.log(`Prepared ${messages.length} messages for beacon notification.`);
+
   if (messages.length === 0) 
     return;
 
@@ -37,6 +41,8 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
   for (const chunk of chunks) {
     try {
       const receipts = await expo.sendPushNotificationsAsync(chunk);
+
+      console.log(`Sent ${receipts.length} push notifications for beacon ID: ${beacon.id}`);
 
       // Optionally update lastNotificationSent for success cases
       for (let i = 0; i < chunk.length; i++) {
