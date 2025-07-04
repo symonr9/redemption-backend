@@ -1,9 +1,7 @@
 const cron = require('node-cron');
-const { PrismaClient } = require('@prisma/client');
 const { Expo } = require('expo-server-sdk');
 const { getAllActiveBeacons } = require('../utils/beaconUtils');
-
-const prisma = new PrismaClient();
+const prisma = require('../misc/prisma-client');
 
 const expo = new Expo({
   accessToken: process.env.EXPO_ACCESS_TOKEN,
