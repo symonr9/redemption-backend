@@ -10,15 +10,11 @@
 
 
 ## On Heroku
-
-### How to install Prisma onto Heroku by scratch
-- Assuming that git repository has been connected and `~/prisma/schema.prisma` exists.
-- 
-
-- After a build, startup the Prisma DB:
-    - `npx prisma migrate dev --name init`
-    - `npx prisma generate`
-
+- If you made changes to your schema and want those changes in the database:
+    - On your local machine (not Heroku), run: `npx prisma migrate dev --name <migration_name>`
+    - This will generate a new migration file in prisma/migrations.
+- Commit and push the changes to your remote Heroku branch.
+- Run the migration on Heroku. In the Heroku console, run: `npx prisma migrate deploy`
 
 ## Heroku Postgres Steps
 
