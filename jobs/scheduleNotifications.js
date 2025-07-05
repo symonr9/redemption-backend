@@ -93,7 +93,7 @@ cron.schedule('0 10 * * *', async () => {
   } catch (err) {
     console.error('Error during 10AM notification run:', err);
   }
-});
+}, { timezone: 'America/Los_Angeles' });
 
 // Runs every day at 7:00 PM
 cron.schedule('0 19 * * *', async () => {
@@ -103,4 +103,4 @@ cron.schedule('0 19 * * *', async () => {
   } catch (err) {
     console.error('Error during 7PM notification run:', err);
   }
-});
+}, { timezone: 'America/Los_Angeles' });
