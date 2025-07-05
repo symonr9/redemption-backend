@@ -130,9 +130,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Prisma generated files
-/prisma/migrations/
-
 # Prisma client generated files (if you use TypeScript or JavaScript with Prisma Client)
 /node_modules/.prisma/
 /prisma/client/
