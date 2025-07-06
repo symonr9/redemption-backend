@@ -69,9 +69,7 @@ router.post('/partition', authenticateJwt, async (req, res) => {
 
         const dataToUpdate = {
             extraPartitionCount: user.extraPartitionCount > 0 ? user.extraPartitionCount - 1 : 0,
-        };
-        if (user.extraPartitionCount === 0) {
-            dataToUpdate.lastPartitionDate = new Date();
+            lastPartitionDate: new Date()
         };
 
         await prisma.user.update({
