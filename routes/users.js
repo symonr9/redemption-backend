@@ -67,6 +67,8 @@ router.post("/user/update", async (req, res) => {
             data: {
                 name: name,
                 icon: user.icon,
+                notifyOnEveryBeacon: user.notifyOnEveryBeacon,
+                notifyMorningAndEveningOnly: user.notifyMorningAndEveningOnly,
                 enableAutoBeacons: user.enableAutoBeacons,
                 autoBeaconType: user.autoBeaconType,
                 autoBeaconTags: user.autoBeaconTags ? user.autoBeaconTags.join('∫') : null,
@@ -79,6 +81,8 @@ router.post("/user/update", async (req, res) => {
                 userId: req.user.id,
                 details: `[Name: ${result.name}] 
                     [Icon: ${result.icon}] 
+                    [Enable Notify on every beacon: ${result.notifyOnEveryBeacon}]
+                    [Enable Notify morning and evening only: ${result.notifyMorningAndEveningOnly}]
                     [Enable Auto Beacons: ${result.enableAutoBeacons}]
                     [Auto beacon Type: ${result.autoBeaconType}]
                     [Auto beacon Tags: ${result.autoBeaconTags}]
