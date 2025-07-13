@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
 var firebaseAdmin = require("firebase-admin");
-var serviceAccount = require("./gospel-initiative-firebase.json");
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(serviceAccount)
