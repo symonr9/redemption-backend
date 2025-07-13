@@ -6,6 +6,13 @@ const prisma = require('./misc/prisma-client')
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
+var firebaseAdmin = require("firebase-admin");
+var serviceAccount = require("./gospel-initiative-firebase.json");
+
+firebaseAdmin.initializeApp({
+  credential: firebaseAdmin.credential.cert(serviceAccount)
+});
+
 require('./jobs/scheduleNotifications');
 
 const PORT = process.env.PORT || 3000;
