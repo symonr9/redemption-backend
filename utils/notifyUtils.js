@@ -14,22 +14,34 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
     where: {
       expoPushToken: { not: null },
       notifyOnEveryBeacon: true,
-      // TODO: For production, filter out the creator...
-      // id: { not: beacon.userId }, // Don't send to the creator
+      id: { not: beacon.userId }, // Don't send to the creator
     },
   });
 
   const body = getBeaconNotificationMessage(beacon, user);
 
-  const messages = users
-    .filter(user => Expo.isExpoPushToken(user.expoPushToken))
-    .map(user => ({
+  const messages = [];
+  const tokensToPush = [];
+
+  for (const user of users) {
+    if (!Expo.isExpoPushToken(user.expoPushToken)) {
+      console.error(`Invalid Expo token for user ${user.id}`);
+      continue;
+    } else if (tokensToPush.includes(user.expoPushToken)) {
+      console.error(`Token has already been added for this device.`);
+      continue;
+    }
+
+    messages.push({
       to: user.expoPushToken,
       sound: 'default',
       body,
       data: { beaconId: beacon.id },
       _userId: user.id,
-    }));
+    });
+
+    tokensToPush.push(user.expoPushToken);
+  }
 
   console.log(`Prepared ${messages.length} messages for beacon notification.`);
 
