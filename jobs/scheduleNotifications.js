@@ -18,17 +18,21 @@ async function sendMorningEveningNotifications(isMorning) {
     },
   });
 
-  const messages = [];
-
   const activeBeacons = await getAllActiveBeacons();
   if (activeBeacons.length === 0)
     return;
+
+  const messages = [];
+  const tokensToPush = [];
 
   for (const user of users) {
     const body = `${isMorning ? 'Good morning!' : 'Good evening!'} There are ${activeBeacons.length} active beacons to pray for.`;
 
     if (!Expo.isExpoPushToken(user.expoPushToken)) {
       console.error(`Invalid Expo token for user ${user.id}`);
+      continue;
+    } else if (tokensToPush.includes(user.expoPushToken)) {
+      console.error(`Token has already been added for this device.`);
       continue;
     }
 
@@ -39,6 +43,8 @@ async function sendMorningEveningNotifications(isMorning) {
       data: { count: activeBeacons.length },
       _userId: user.id, // include so we can update lastNotificationSent after
     });
+
+    tokensToPush.push(user.expoPushToken);
   }
 
   if (messages.length === 0)
