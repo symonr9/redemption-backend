@@ -138,7 +138,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
             : null;
 
         await setupGlobalBeacons(req.user);
-        await setupAutoBeacons(req.user);
+        // await setupAutoBeacons(req.user);
 
         let activeBeacons = includeBeacons ? await getAllActiveBeacons() : [];
         let expiredBeacons = includeBeacons ? await getExpiredBeacons(req.user.id) : [];
@@ -222,6 +222,7 @@ const setupGlobalBeacons = async (user) => {
     }
 };
 
+// NOTE: Auto beacons are currently not being used in the app, but may be added in the future.
 const setupAutoBeacons = async (user) => {
     try {
         const autoBeacons = await prisma.globalBeacon.findMany({
