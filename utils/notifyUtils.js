@@ -98,12 +98,11 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
   const beaconWithUser = await prisma.beacon.findFirst({
     where: {
       id: beaconActivity.beaconId,
-      expoPushToken: { not: null },
     },
     include: { user: true },
   });
 
-  if (!beaconWithUser) {
+  if (!beaconWithUser || !beaconWithUser.user.expoPushToken) {
     return;
   }
 
