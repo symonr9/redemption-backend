@@ -97,7 +97,7 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
 
   const beaconWithUser = await prisma.beacon.findUnique({
     where: {
-      id: beaconId,
+      id: beaconActivity.beaconId,
       expoPushToken: { not: null },
     },
     include: { user: true },
