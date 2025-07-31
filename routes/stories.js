@@ -4,7 +4,7 @@ const prisma = require('../misc/prisma-client');
 const { OpenAI } = require("openai");
 const { isWithinPast24Hours, formatDateTime, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType } = require('../enums/enums');
-const { MAX_NORMAL_TEXT_LENGTH, MAX_NAME_LENGTH, MAX_LONG_TEXT_LENGTH } = require('../constants/constants');
+const { MAX_NORMAL_TEXT_LENGTH, MAX_NAME_LENGTH, MAX_LONG_TEXT_LENGTH, MIN_TESTIMONY_LENGTH, MAX_TESTIMONY_LENGTH } = require('../constants/constants');
 
 const router = express.Router();
 
@@ -29,15 +29,8 @@ router.post('/partition', authenticateJwt, async (req, res) => {
     try {
         const cleanQuestion = cleanForProfanity(question);
         const cleanResponse = cleanForProfanity(userResponse);
-        if (!hasValidTextLength(cleanResponse, 1, 1800)) {
-            res.status(400).json({ error: `Response must be between 1 and ${1800} characters.` });
-            return;
-        }
-
-        if (isPartitionNotAllowed(user)) {
-            const newDate = new Date(user.lastPartitionDate);
-            newDate.setDate(newDate.getDate() + 1);
-            res.status(400).json({ error: `You have hit your testimony practice limit for today. Please check back on ${formatDateTime(newDate)}` });
+        if (!hasValidTextLength(cleanResponse, MIN_TESTIMONY_LENGTH, MAX_TESTIMONY_LENGTH)) {
+            res.status(400).json({ error: `Response must be between ${MIN_TESTIMONY_LENGTH} and ${MAX_TESTIMONY_LENGTH} characters.` });
             return;
         }
 
@@ -93,12 +86,6 @@ router.post('/partition', authenticateJwt, async (req, res) => {
     }
 });
 
-function isPartitionNotAllowed(user) {
-    return user.lastPartitionDate !== undefined
-        && isWithinPast24Hours(user.lastPartitionDate)
-        && user.extraPartitionCount === 0;
-}
-
 function getPartitionResponseAsJSON(completion) {
     const assistantResponse = completion.choices[0].message.content;
     const jsonMatch = assistantResponse.match(/```json\n([\s\S]*?)\n```/);
@@ -113,39 +100,6 @@ function getPartitionResponseAsJSON(completion) {
         return null;
     }
 }
-
-router.post('/unlockPractice', authenticateJwt, async (req, res) => {
-    const user = req.user;
-    try {
-        if (user.lastExtraPartitionGranted) {
-            const lastGranted = new Date(user.lastExtraPartitionGranted);
-            if (isWithinPast24Hours(lastGranted)) {
-                res.status(400).json({ error: 'You already unlocked an extra practice today.' });
-                return;
-            }
-        }
-
-        await prisma.log.create({
-            data: {
-                type: LogType.UnlockPractice,
-                userId: user.id,
-                details: `[New Count: ${user.extraPartitionCount + 1}]`
-            }
-        });
-
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                lastExtraPartitionGranted: new Date(),
-                extraPartitionCount: user.extraPartitionCount + 1,
-            }
-        });
-
-        res.status(200).json({ response: 'OK' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 router.post('/create', authenticateJwt, async (req, res) => {
     const user = req.user;
