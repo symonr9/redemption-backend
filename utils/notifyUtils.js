@@ -19,7 +19,7 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
     },
   });
 
-  const body = getBeaconNotificationMessage(user);
+  const body = getBeaconNotificationMessage(beacon);
 
   const messages = [];
   const tokensToPush = [];
@@ -176,8 +176,8 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
   }
 }
 
-function getBeaconNotificationMessage(user) {
-  const name = user.shareOwnName ? user.name : 'Someone';
+function getBeaconNotificationMessage(beacon) {
+  const name = beacon.shareOwnName ? user.name : 'Someone';
   return getRandomString([
     `${name} sent out a beacon. Let's pray!`,
     `${name} sent out a beacon. Let's pray!`,
@@ -201,7 +201,7 @@ function getBeaconNotificationMessage(user) {
 }
 
 function getPrayerNotificationMessage(user) {
-  const name = user.shareOwnName ? user.name : 'Someone';
+  const name = user.name;
   return getRandomString([
     `${name} prayed for your beacon.`,
     `${name} prayed for your beacon.`,
