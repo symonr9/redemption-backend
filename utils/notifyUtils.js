@@ -125,7 +125,7 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
     sound: 'default',
     vibrate: false,
     body,
-    data: { beaconId: beacon.id },
+    data: { beaconId: beaconWithUser.id },
     _userId: beaconWithUser.user.id,
   });
 
