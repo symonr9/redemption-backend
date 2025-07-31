@@ -35,6 +35,7 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
     messages.push({
       to: user.expoPushToken,
       sound: 'default',
+      vibrate: false,
       body,
       data: { beaconId: beacon.id },
       _userId: user.id,
@@ -45,7 +46,7 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
 
   console.log(`Prepared ${messages.length} messages for beacon notification.`);
 
-  if (messages.length === 0) 
+  if (messages.length === 0)
     return;
 
   const chunks = expo.chunkPushNotifications(messages);
@@ -90,8 +91,8 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
 };
 
 function getBeaconNotificationMessage(beacon, user) {
-    if (beacon.shareOwnName)
-      return `${user.name} sent out a beacon. Let's pray!`;
+  if (beacon.shareOwnName)
+    return `${user.name} sent out a beacon. Let's pray!`;
 
-    return `Someone sent out a beacon. Let's pray!`;
+  return `Someone sent out a beacon. Let's pray!`;
 }

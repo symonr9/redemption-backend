@@ -39,6 +39,7 @@ async function sendMorningEveningNotifications(isMorning) {
     messages.push({
       to: user.expoPushToken,
       sound: 'default',
+      vibrate: false,
       body,
       data: { count: activeBeacons.length },
       _userId: user.id, // include so we can update lastNotificationSent after
