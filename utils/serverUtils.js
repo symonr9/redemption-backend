@@ -56,3 +56,11 @@ module.exports.formatDateTime = function(date) {
 
     return `${dayOfWeek}, ${month} ${day}, ${year} at ${hour}:${minute} ${ampm}`;
 }
+
+module.exports.getRandomString = function(strings) {
+  if (!Array.isArray(strings) || strings.length === 0) 
+    return '';
+
+  const randomIndex = Math.floor(Math.random() * strings.length);
+  return strings[randomIndex];
+}

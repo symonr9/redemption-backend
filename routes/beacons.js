@@ -2,7 +2,7 @@ const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
 const { cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
-const { sendBeaconNotification } = require('../utils/notifyUtils');
+const { sendBeaconNotification, sendPrayerNotification } = require('../utils/notifyUtils');
 const { LogType } = require('../enums/enums');
 const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH, DAYS_ACTIVE_FOR_BEACONS } = require('../constants/constants');
 
@@ -152,6 +152,8 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                     details: `[ID: ${result.id}] [Beacon ID: ${result.beaconId}] [Note: ${result.note}]`
                 }
             });
+
+            await sendPrayerNotification(result, user); 
 
             res.status(200).json(result);
         }
