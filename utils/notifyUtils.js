@@ -106,7 +106,7 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
     return;
   }
 
-  const body = getPrayerNotificationMessage(beaconWithUser.user);
+  const body = getPrayerNotificationMessage(user);
 
   const messages = [];
   const tokensToPush = [];
