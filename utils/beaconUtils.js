@@ -1,12 +1,11 @@
 
 const prisma = require('../misc/prisma-client');
 
-module.exports.getAllActiveBeacons = async (userId = null) => {
+module.exports.getAllActiveBeacons = async () => {
     const currentDate = new Date();
     const beacons = await prisma.beacon.findMany({
         where: {
             activeUntil: { gt: currentDate }, // Filter for active beacons
-            userId: { not: userId },
         },
         include: includeClause,
     });

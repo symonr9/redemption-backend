@@ -140,7 +140,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
         await setupGlobalBeacons(req.user);
         // await setupAutoBeacons(req.user);
 
-        let activeBeacons = includeBeacons ? await getAllActiveBeacons(req.user.id) : [];
+        let activeBeacons = includeBeacons ? await getAllActiveBeacons() : [];
         let expiredBeacons = includeBeacons ? await getExpiredBeacons(req.user.id) : [];
 
         const response = {
