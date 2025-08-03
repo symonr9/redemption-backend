@@ -41,7 +41,7 @@ async function sendMorningEveningNotifications(isMorning) {
       sound: 'default',
       vibrate: false,
       body,
-      data: { count: activeBeacons.length },
+      data: { count: activeBeacons.length, morningEveningNotifications: true },
       _userId: user.id, // include so we can update lastNotificationSent after
     });
 

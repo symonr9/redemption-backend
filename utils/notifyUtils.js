@@ -38,7 +38,7 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
       sound: 'default',
       vibrate: false,
       body,
-      data: { beaconId: beacon.id },
+      data: { beaconId: beacon.id, sendBeaconNotification: true },
       _userId: user.id,
     });
 
@@ -124,7 +124,7 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
     sound: 'default',
     vibrate: false,
     body,
-    data: { beaconId: beaconWithUser.id },
+    data: { beaconId: beaconWithUser.id, sendPrayerNotification: true },
     _userId: beaconWithUser.user.id,
   });
 
