@@ -2,14 +2,15 @@
 const { Expo } = require('expo-server-sdk');
 const prisma = require('../misc/prisma-client');
 const { getRandomString } = require('../utils/serverUtils');
+const { NotificationType } = require('../enums/enums');
 
 const expo = new Expo({
   accessToken: process.env.EXPO_ACCESS_TOKEN,
   useFcmV1: true,
 });
 
-module.exports.sendBeaconNotification = async function (beacon, user) {
-  console.log(`Sending beacon notification for beacon ID: ${beacon.id}, user name: ${user.name}`);
+module.exports.sendBeaconNotification = async function (beacon, userThatCreatedBeacon) {
+  console.log(`Sending beacon notification for beacon ID: ${beacon.id}, user name: ${userThatCreatedBeacon.name}`);
 
   const users = await prisma.user.findMany({
     where: {
@@ -18,8 +19,6 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
       id: { not: beacon.userId }, // Don't send to the creator
     },
   });
-
-  const body = getBeaconNotificationMessage(beacon, user);
 
   const messages = [];
   const tokensToPush = [];
@@ -31,7 +30,11 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
     } else if (tokensToPush.includes(user.expoPushToken)) {
       console.error(`Token has already been added for this device.`);
       continue;
+    } else if (!canSendNotification(user.id, NotificationType.Beacon)) {
+      continue;
     }
+
+    const body = await getBeaconNotificationMessage(beacon, user, userThatCreatedBeacon);
 
     messages.push({
       to: user.expoPushToken,
@@ -67,6 +70,13 @@ module.exports.sendBeaconNotification = async function (beacon, user) {
           await prisma.user.update({
             where: { id: message._userId },
             data: { lastNotificationSent: new Date() },
+          });
+
+          await prisma.notification.create({
+            data: {
+              type: NotificationType.Beacon,
+              userId: message._userId,
+            }
           });
         } else if (receipt.status === 'error') {
           const err = receipt.details?.error;
@@ -106,8 +116,6 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
     return;
   }
 
-  const body = getPrayerNotificationMessage(user);
-
   const messages = [];
   const tokensToPush = [];
 
@@ -117,7 +125,11 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
   } else if (tokensToPush.includes(beaconWithUser.user.expoPushToken)) {
     console.error(`Token has already been added for this device.`);
     return;
+  } else if (!canSendNotification(beaconWithUser.user.id, NotificationType.Prayer)) {
+    return;
   }
+
+  const body = await getPrayerNotificationMessage(user, beaconWithUser.user);
 
   messages.push({
     to: beaconWithUser.user.expoPushToken,
@@ -153,6 +165,13 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
             where: { id: message._userId },
             data: { lastNotificationSent: new Date() },
           });
+
+          await prisma.notification.create({
+            data: {
+              type: NotificationType.Prayer,
+              userId: message._userId,
+            }
+          });
         } else if (receipt.status === 'error') {
           const err = receipt.details?.error;
 
@@ -176,8 +195,64 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
   }
 }
 
-function getBeaconNotificationMessage(beacon, user) {
-  const name = beacon.shareOwnName ? user.name : 'Someone';
+// True if less than 2 notifications in last 30 minutes. Create batched notification if more.
+module.exports.canSendNotification = async function (userId, type) {
+  const now = new Date();
+  const since = new Date(now.getTime() - 30 * 60 * 1000); // 30 minutes ago
+
+  const whereClause = {
+    userId,
+    type,
+    createdAt: { gte: since }
+  };
+
+  const recent = await prisma.notification.findMany({ where: whereClause });
+
+  if (recent.length <= 1) {
+    await prisma.notification.create({
+      data: {
+        userId,
+        type,
+        sent: true
+      }
+    });
+    return true;
+  }
+
+  await prisma.notification.create({
+    data: {
+      userId,
+      type,
+      sent: false // Batch for later
+    }
+  });
+
+  return false; // Don't send immediately
+}
+
+module.exports.getBatchedNotificationCount = async function (userId, type) {
+  const now = new Date();
+  const since = new Date(now.getTime() - 30 * 60 * 1000); // 30 minutes ago
+
+  const count = await prisma.notification.count({
+    where: {
+      userId,
+      type,
+      sent: false,
+      createdAt: { gte: since }
+    }
+  });
+
+  return count;
+};
+
+async function getBeaconNotificationMessage(beacon, user, userThatCreatedBeacon) {
+  const name = beacon.shareOwnName ? userThatCreatedBeacon.name : 'Someone';
+
+  const count = await getBatchedNotificationCount(user.id, NotificationType.Beacon);
+  if (count > 0)
+    return `${name} and ${count} others have sent out beacons. Let's pray!`;
+
   return getRandomString([
     `${name} sent out a beacon. Let's pray!`,
     `${name} sent out a beacon. Let's pray!`,
@@ -200,8 +275,13 @@ function getBeaconNotificationMessage(beacon, user) {
   ]);
 }
 
-function getPrayerNotificationMessage(user) {
-  const name = user.name;
+async function getPrayerNotificationMessage(userThatPrayed, beaconUser) {
+  const name = userThatPrayed.name;
+
+  const count = await getBatchedNotificationCount(beaconUser.id, NotificationType.Prayer);
+  if (count > 0)
+    return `${name} and ${count} others have prayed for your beacon.`;
+
   return getRandomString([
     `${name} prayed for your beacon.`,
     `${name} prayed for your beacon.`,

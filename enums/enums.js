@@ -67,4 +67,9 @@ const AutoBeaconType = {
     OpportunitiesToShareGospel: 2,
 }
 
-module.exports = { LogType, GlobalBeaconType, AutoBeaconType };
+const NotificationType = {
+    Beacon: 1,
+    Prayer: 2,
+}
+
+module.exports = { LogType, GlobalBeaconType, AutoBeaconType, NotificationType };

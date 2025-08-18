@@ -184,6 +184,7 @@ model Notification {
   itemId    String?
   createdAt DateTime @default(now())
   userId    String
+  sent      Boolean  @default(true)
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
