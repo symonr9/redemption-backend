@@ -112,7 +112,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        if (!checkForProfanity(activity.note)) {
+        if (checkForProfanity(activity.note)) {
             res.status(400).json({ error: `Note must not contain any profanity.` });
             return;
         } else if (!hasValidTextLength(activity.note, 1, MAX_NORMAL_TEXT_LENGTH)) {
@@ -168,7 +168,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        if (!checkForProfanity(activity.note)) {
+        if (checkForProfanity(activity.note)) {
             res.status(400).json({ error: `Note must not contain any profanity.` });
             return;
         } else if (!hasValidTextLength(activity.note, 1, MAX_NORMAL_TEXT_LENGTH)) {

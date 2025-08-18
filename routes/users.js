@@ -57,7 +57,7 @@ router.post("/user/update", async (req, res) => {
         const { user } = req.body;
 
         const name = user.name || '';
-        if (!checkForProfanity(name)) {
+        if (checkForProfanity(name)) {
             res.status(400).json({ error: `Name must not contain any profanity.` });
             return;
         } else if (!hasValidTextLength(name, 1, MAX_NAME_LENGTH)) {
