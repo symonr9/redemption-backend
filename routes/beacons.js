@@ -1,7 +1,7 @@
 const authenticateJwt = require('../auth/jwtMiddleware');
 const express = require('express');
 const prisma = require('../misc/prisma-client');
-const { cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
+const { cleanForProfanity, hasValidTextLength, checkForProfanity } = require('../utils/serverUtils');
 const { sendBeaconNotification, sendPrayerNotification } = require('../utils/notifyUtils');
 const { LogType } = require('../enums/enums');
 const { MAX_NAME_LENGTH, MAX_NORMAL_TEXT_LENGTH, DAYS_ACTIVE_FOR_BEACONS } = require('../constants/constants');
@@ -112,8 +112,10 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        const cleanActivityNote = cleanForProfanity(activity.note) || '';
-        if (activity.note && !hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
+        if (!checkForProfanity(activity.note)) {
+            res.status(400).json({ error: `Note must not contain any profanity.` });
+            return;
+        } else if (!hasValidTextLength(activity.note, 1, MAX_NORMAL_TEXT_LENGTH)) {
             res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
             return;
         }
@@ -121,7 +123,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
         if (activity.global) {
             const result = await prisma.globalBeaconActivity.create({
                 data: {
-                    note: cleanActivityNote,
+                    note: activity.note,
                     userId: user.id,
                     beaconId: activity.beaconId
                 }
@@ -139,7 +141,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
         } else {
             const result = await prisma.beaconActivity.create({
                 data: {
-                    note: cleanActivityNote,
+                    note: activity.note,
                     userId: user.id,
                     beaconId: activity.beaconId
                 }
@@ -153,7 +155,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
                 }
             });
 
-            await sendPrayerNotification(result, user); 
+            await sendPrayerNotification(result, user);
 
             res.status(200).json(result);
         }
@@ -166,8 +168,10 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        const cleanActivityNote = cleanForProfanity(activity.note) || '';
-        if (cleanActivityNote && !hasValidTextLength(cleanActivityNote, 1, MAX_NORMAL_TEXT_LENGTH)) {
+        if (!checkForProfanity(activity.note)) {
+            res.status(400).json({ error: `Note must not contain any profanity.` });
+            return;
+        } else if (!hasValidTextLength(activity.note, 1, MAX_NORMAL_TEXT_LENGTH)) {
             res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
             return;
         }
@@ -178,7 +182,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     id: activity.id
                 },
                 data: {
-                    note: cleanActivityNote,
+                    note: activity.note,
                 }
             });
 
@@ -197,7 +201,7 @@ router.post('/activity/update', authenticateJwt, async (req, res) => {
                     id: activity.id
                 },
                 data: {
-                    note: cleanActivityNote,
+                    note: activity.note,
                 }
             });
 

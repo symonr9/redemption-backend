@@ -2,7 +2,7 @@
 var filter = require('leo-profanity');
 
 module.exports.checkForProfanity = function(text) {
-    return filter.check(text);
+    return text && filter.check(text);
 }
 
 module.exports.cleanForProfanity = function(text) {
