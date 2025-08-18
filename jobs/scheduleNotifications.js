@@ -13,7 +13,8 @@ async function sendMorningEveningNotifications(isMorning) {
 
   const users = await prisma.user.findMany({
     where: {
-      notifyMorningAndEveningOnly: true,
+      notifyMorning: isMorning,
+      notifyEvening: !isMorning,
       expoPushToken: { not: null },
     },
   });
