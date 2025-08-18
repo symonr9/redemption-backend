@@ -18,15 +18,15 @@ async function sendMorningEveningNotifications(isMorning) {
     },
   });
 
-  const activeBeacons = await getAllActiveBeacons();
-  if (activeBeacons.length === 0)
-    return;
-
   const messages = [];
   const tokensToPush = [];
 
   for (const user of users) {
-    const body = `${isMorning ? 'Good morning!' : 'Good evening!'} There are ${activeBeacons.length} active beacons to pray for.`;
+    const activeBeacons = await getAllActiveBeacons(user.id);
+    if (activeBeacons.length === 0)
+      continue;;
+
+    const body = `${isMorning ? 'Good morning!' : 'Good evening!'} There are ${activeBeacons.length} beacons to pray for.`;
 
     if (!Expo.isExpoPushToken(user.expoPushToken)) {
       console.error(`Invalid Expo token for user ${user.id}`);
