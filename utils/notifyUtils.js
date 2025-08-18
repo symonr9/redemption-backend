@@ -196,7 +196,7 @@ module.exports.sendPrayerNotification = async function (beaconActivity, user) {
 }
 
 // True if less than 2 notifications in last 30 minutes. Create batched notification if more.
-module.exports.canSendNotification = async function (userId, type) {
+async function canSendNotification(userId, type) {
   const now = new Date();
   const since = new Date(now.getTime() - 30 * 60 * 1000); // 30 minutes ago
 
@@ -230,7 +230,7 @@ module.exports.canSendNotification = async function (userId, type) {
   return false; // Don't send immediately
 }
 
-module.exports.getBatchedNotificationCount = async function (userId, type) {
+async function getBatchedNotificationCount(userId, type) {
   const now = new Date();
   const since = new Date(now.getTime() - 30 * 60 * 1000); // 30 minutes ago
 
