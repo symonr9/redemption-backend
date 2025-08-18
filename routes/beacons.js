@@ -112,10 +112,11 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
     const user = req.user;
     const { activity } = req.body;
     try {
-        if (checkForProfanity(activity.note)) {
+        const note = activity.note || `I'm praying for you!`;
+        if (checkForProfanity(note)) {
             res.status(400).json({ error: `Note must not contain any profanity.` });
             return;
-        } else if (!hasValidTextLength(activity.note, 1, MAX_NORMAL_TEXT_LENGTH)) {
+        } else if (!hasValidTextLength(note, 1, MAX_NORMAL_TEXT_LENGTH)) {
             res.status(400).json({ error: `Note must be between 1 and ${MAX_NORMAL_TEXT_LENGTH} characters.` });
             return;
         }
@@ -123,7 +124,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
         if (activity.global) {
             const result = await prisma.globalBeaconActivity.create({
                 data: {
-                    note: activity.note,
+                    note,
                     userId: user.id,
                     beaconId: activity.beaconId
                 }
@@ -141,7 +142,7 @@ router.post('/activity/create', authenticateJwt, async (req, res) => {
         } else {
             const result = await prisma.beaconActivity.create({
                 data: {
-                    note: activity.note,
+                    note: note,
                     userId: user.id,
                     beaconId: activity.beaconId
                 }
