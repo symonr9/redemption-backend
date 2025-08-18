@@ -1,6 +1,10 @@
 
 var filter = require('leo-profanity');
 
+module.exports.checkForProfanity = function(text) {
+    return filter.check(text);
+}
+
 module.exports.cleanForProfanity = function(text) {
     const cleanText = filter.clean(text);
     return cleanText ? cleanText.trim() : "";

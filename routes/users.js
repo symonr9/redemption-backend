@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { getAllActiveBeacons, getExpiredBeacons } = require('../utils/beaconUtils');
-const { isWithinPast24Hours, formatDateTime, getTomorrow, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
+const { isWithinPast24Hours, formatDateTime, getTomorrow, checkForProfanity, cleanForProfanity, hasValidTextLength } = require('../utils/serverUtils');
 const { LogType, GlobalBeaconType } = require('../enums/enums');
 const { MAX_NAME_LENGTH, MAX_NUM_GLOBAL_BEACONS, MAX_NUM_AUTO_BEACONS } = require('../constants/constants');
 
@@ -56,8 +56,11 @@ router.post("/user/update", async (req, res) => {
     try {
         const { user } = req.body;
 
-        const name = cleanForProfanity(user.name);
-        if (!hasValidTextLength(name, 1, MAX_NAME_LENGTH)) {
+        const name = user.name || '';
+        if (!checkForProfanity(name)) {
+            res.status(400).json({ error: `Name must not contain any profanity.` });
+            return;
+        } else if (!hasValidTextLength(name, 1, MAX_NAME_LENGTH)) {
             res.status(400).json({ error: `Name must be between 1 and ${MAX_NAME_LENGTH} characters.` });
             return;
         }
