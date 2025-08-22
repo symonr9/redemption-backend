@@ -118,6 +118,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
         const includeOnes = spec === 'ones' || spec === 'all';
         const includeStories = spec === 'stories' || spec === 'all';
         const includeBeacons = spec === 'beacons' || spec === 'all';
+        const includesActivities = spec === 'all';
 
         const userIncludeOptions = {};
 
@@ -131,6 +132,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
                 },
             };
         }
+
         if (includeStories) {
             userIncludeOptions.chapters = true;
         }
@@ -141,6 +143,22 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
                 include: userIncludeOptions,
             })
             : null;
+
+        if (includesActivities) {
+            const userBeaconActivities = await prisma.beaconActivity.findMany({
+                where: {
+                    userId: user.id,
+                },
+            });
+
+            const userGlobalActivities = await prisma.globalBeaconActivity.findMany({
+                where: {
+                    userId: user.id,
+                },
+            });
+
+            user.activityCount = userBeaconActivities.length + userGlobalActivities.length;
+        }
 
         await setupGlobalBeacons(req.user);
         // await setupAutoBeacons(req.user);
@@ -153,7 +171,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
             isSetupForNotifications: user?.expoPushToken !== null,
             ...(includeOnes && user?.ones && { ones: user.ones }),
             ...(includeStories && user?.chapters && { chapters: user.chapters }),
-            ...(includeBeacons && { activeBeacons, expiredBeacons })
+            ...(includeBeacons && { activeBeacons, expiredBeacons }),
         };
 
         if (Object.keys(response).length) {
