@@ -118,7 +118,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
         const includeOnes = spec === 'ones' || spec === 'all';
         const includeStories = spec === 'stories' || spec === 'all';
         const includeBeacons = spec === 'beacons' || spec === 'all';
-        const includesActivities = spec === 'all';
+        const includesActivities = spec === 'beacons' || spec === 'all';
 
         const userIncludeOptions = {};
 
