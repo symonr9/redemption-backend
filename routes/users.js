@@ -137,7 +137,7 @@ router.get('/data/:spec', authenticateJwt, async (req, res) => {
             userIncludeOptions.chapters = true;
         }
 
-        const user = (includeUser || includeOnes || includeStories)
+        const user = (includeUser || includeOnes || includeStories || includesActivities)
             ? await prisma.user.findUnique({
                 where: { id: req.user.id },
                 include: userIncludeOptions,
